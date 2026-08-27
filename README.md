@@ -6,7 +6,7 @@ Oh My House 是一个面向 2–4 人小家庭的轻量 Household Companion。
 
 ## 当前状态
 
-项目仍处于 **Product Design / Architecture Planning** 阶段，尚未开始写代码，也尚未选择技术实现。
+项目的 **Product Design v0.1 已确认**。尚未开始技术架构选择，也尚未写代码。
 
 当前确认的核心领域：
 
@@ -37,6 +37,7 @@ Oh My House 是一个面向 2–4 人小家庭的轻量 Household Companion。
 - [Multi-device Sync Product Requirements v0.1](./docs/MULTI_DEVICE_SYNC_PRODUCT_REQUIREMENTS_ZH.md)
 - [Shared Household Join Flow v0.1](./docs/SHARED_HOUSEHOLD_JOIN_FLOW_ZH.md)
 - [Product Design Status & Open Decisions v0.1](./docs/PRODUCT_DESIGN_STATUS_AND_OPEN_DECISIONS_ZH.md)
+- [Notification Delivery Rules v0.1](./docs/NOTIFICATION_DELIVERY_RULES_ZH.md)
 
 `HOUSEHOLD_COMPANION_REQUIREMENTS_ZH.md` 是当前阶段的 source of truth。
 
