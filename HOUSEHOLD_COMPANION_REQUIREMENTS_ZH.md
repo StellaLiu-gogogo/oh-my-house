@@ -1208,3 +1208,34 @@ Maintenance
 
 Purchased 移入最近购买的具体时间、最近记录的保留范围、清单手动排序、商店或货架分类、条码、价格
 与优惠信息以后再决定。当前不建立库存扣减、消费统计或家庭账本。
+
+## 19.15 Today 与 Calendar 详细行为
+
+Today 继续按照 Meals、Chores、Home / Maintenance、Household Events 分区，不使用小时级时间轴。
+Shopping 不在 Today 重复显示，因为它已经拥有固定的底部 Tab。
+
+Today 显示：
+
+-   当天安排的 Meal、Chore、Maintenance 和 Event；
+-   尚未完成的逾期 Chore 与 Maintenance；
+-   今天触发的 Event reminder，即使 Event 本身在未来日期。
+
+Meal 不变成逾期任务，已经过去的 Event 也不持续留在 Today。空的 Chores、Maintenance 和 Events
+分区不显示。未安排的 Meal 可以显示轻量添加提示。
+
+Chore 和 Maintenance 可以直接在 Today 完成，并允许立即 undo。完成内容可以短暂保留以便撤销，
+之后从 Today 隐藏，但原模块继续保留历史。
+
+每个 Today 分区先显示最需要注意的 3 项，逾期内容优先；更多项目可以在 Today 内展开。
+
+Calendar 的固定入口为：
+
+    Plan → Calendar
+
+iPhone Calendar 默认使用月视图。日期下方以少量颜色点表示当天是否有 Meals、Chores、Maintenance
+或 Events，不在月格中显示完整标题。
+
+选择日期后，内容仍按生活领域分区，并允许临时只查看某个领域。Calendar 中的 Chore 和 Maintenance
+也可以直接完成并 undo。
+
+Today 和 Calendar 中的项目始终打开并更新原模块记录，不创建 Today-specific 或 Calendar-specific 副本。

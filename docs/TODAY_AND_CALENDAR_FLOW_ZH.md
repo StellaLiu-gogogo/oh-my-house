@@ -2,7 +2,7 @@
 
 - **日期：** 2026-08-27
 - **阶段：** Product Design
-- **状态：** Agent 建议，等待用户 review
+- **状态：** 核心流程已由用户确认
 - **范围：** Today、Plan → Calendar、逾期内容、直接完成和信息数量控制
 
 ## 1. 两个页面各自负责什么
@@ -24,7 +24,7 @@ Today 不使用小时级时间轴，继续按照生活领域分区：
     Home / Maintenance
     Events（有内容时才出现）
 
-**Agent 建议：** Shopping 不在 Today 重复显示。它已经拥有固定的底部 Tab；用户随时可以直接进入。
+Shopping 不在 Today 重复显示。它已经拥有固定的底部 Tab；用户随时可以直接进入。
 
 ## 3. 什么会出现在 Today
 
@@ -45,7 +45,7 @@ Meal 不变成逾期任务。已经过去的 Event 也不一直留在 Today。
 
 ### 空的分区
 
-**Agent 建议：** Chores、Maintenance 和 Events 没有内容时不显示空分区。
+Chores、Maintenance 和 Events 没有内容时不显示空分区。
 
 Meals 可以作为例外：如果今天还没有安排家庭关心的餐食，可以显示一条轻量提示，例如“今天还没有安排晚餐”，
 并允许直接添加。这样“还没决定吃什么”本身也能被看见。
@@ -67,7 +67,7 @@ Meals 可以作为例外：如果今天还没有安排家庭关心的餐食，�
 
 ## 5. 内容太多时怎么办
 
-**Agent 建议：** 每个分区先显示最需要注意的 3 项：
+每个分区先显示最需要注意的 3 项：
 
 1.  逾期内容优先；
 2.  当天内容其次；
@@ -91,7 +91,7 @@ Calendar 的固定入口是：
 
     Plan → Calendar
 
-**Agent 建议：** iPhone 默认显示月视图。日期下方使用少量颜色点表示当天是否有 Meal、Chore、Maintenance
+iPhone 默认显示月视图。日期下方使用少量颜色点表示当天是否有 Meal、Chore、Maintenance
 或 Event，不在月格中塞入完整标题。
 
 选择日期后，在月历下方显示当天内容；也可以进入更完整的日期页面。
@@ -120,7 +120,7 @@ Today、Calendar、日期详情以及从它们打开的页面都保留 `文/A` �
 - 人名、品牌、型号和数值不做机械翻译；
 - 切换语言不会产生另一份 Today 或 Calendar 数据。
 
-## 10. 当前建议用户确认
+## 10. 已确认的选择
 
 1. Today 按 Meals、Chores、Home / Maintenance、Events 分区，不使用时间轴；
 2. Shopping 不在 Today 重复显示；
@@ -133,7 +133,7 @@ Today、Calendar、日期详情以及从它们打开的页面都保留 `文/A` �
 9. Calendar 中的 Chore 和 Maintenance 也可以直接完成并撤销；
 10. 点击 Today 或 Calendar 的内容时，进入原模块详情，不创建另一份记录。
 
-上述内容目前是设计建议，尚未写入主需求文档的“已确认决定”。
+上述内容已于 2026-08-27 由用户确认，并同步写入主需求文档。
 
 ## 11. 可以以后决定
 
