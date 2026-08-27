@@ -35,6 +35,7 @@ Oh My House 是一个面向 2–4 人小家庭的轻量 Household Companion。
 - [Today & Calendar Flow v0.1](./docs/TODAY_AND_CALENDAR_FLOW_ZH.md)
 - [Household Members Flow v0.1](./docs/HOUSEHOLD_MEMBERS_FLOW_ZH.md)
 - [Multi-device Sync Product Requirements v0.1](./docs/MULTI_DEVICE_SYNC_PRODUCT_REQUIREMENTS_ZH.md)
+- [Shared Household Join Flow v0.1](./docs/SHARED_HOUSEHOLD_JOIN_FLOW_ZH.md)
 
 `HOUSEHOLD_COMPANION_REQUIREMENTS_ZH.md` 是当前阶段的 source of truth。
 
