@@ -82,7 +82,7 @@ Reminder 的意思是“在事件发生前提醒家庭成员”。
 
 Event title 和 reminder text 可以不同。Event 说明“发生什么”，reminder 说明“现在需要注意什么”。
 
-**Agent 建议：** 第一阶段每个 Event 先支持一个 reminder。一个 reminder 已经覆盖主要场景，也能保持设置简单。
+第一阶段每个 Event 先支持一个 reminder。一个 reminder 已经覆盖主要场景，也能保持设置简单。
 
 以后有真实需要时再支持多个提醒，例如“前一天晚上”和“当天早上”各提醒一次。
 

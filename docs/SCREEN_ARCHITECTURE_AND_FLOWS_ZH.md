@@ -50,7 +50,7 @@ avatar 同时存在，不能因为成员已有 preferred display language 而省
 
 ### 2.4 Create 入口
 
-**Agent 建议：** 每个 Tab 使用 contextual add，不建立包含所有 domain 的巨大全局创建菜单。
+**已确认：** 每个 Tab 使用 contextual add，不建立包含所有 domain 的巨大全局创建菜单。
 
 - Plan 创建 Meal、Chore 或 Event；
 - Shopping 默认创建 Shopping Item；
@@ -72,9 +72,6 @@ Today 不负责完整规划、历史搜索或长表管理。
     Thursday, 27 August                   [Avatar]
     Good morning
 
-    Needs attention
-    └── 仅在存在逾期或时间敏感内容时出现
-
     Meals
     ├── Lunch
     └── Dinner
@@ -89,8 +86,8 @@ Today 不负责完整规划、历史搜索或长表管理。
     Events
     └── Time / all-day household event
 
-    Shopping
-    └── 未购买项数量和入口
+逾期 Chore 和 Maintenance 仍留在各自生活领域中并明确标记，不单独复制到一个 Needs attention 分区。
+Shopping 不在 Today 重复显示，因为它已经拥有固定底部 Tab。
 
 ### 3.3 排序原则
 
@@ -106,8 +103,7 @@ Today 允许：
 - complete / undo Chore；
 - complete Maintenance；
 - 打开 Meal 或 Recipe；
-- 打开 Event；
-- 进入 Shopping List。
+- 打开 Event。
 
 编辑 recurrence、更换 Recipe、修改 Inventory 等操作回到原 domain 完成。
 
@@ -126,7 +122,7 @@ Plan 是“接下来怎么安排”的空间，不是一个新 domain。
     Plan                                      [Avatar]
     This week                              [Calendar]
 
-    Meals
+    Grocery
     └── 5 of 7 dinners planned                 [Open]
 
     Chores
@@ -207,7 +203,7 @@ Shopping 只回答：
 
     Purchased recently                         [Show]
 
-Source 是辅助上下文，不应让用户为手动添加的每个项目做复杂选择。手动添加可以默认使用 Household / Other。
+Source 是辅助上下文，不应让用户为手动添加的每个项目做复杂选择。手动添加默认使用 Grocery，并允许修改。
 
 ### 5.3 Generated Items
 
@@ -223,7 +219,7 @@ Review 只需支持：
 
 ### 5.4 Purchased State
 
-**Agent 建议：** 勾选后先移到当页 Purchased section 并支持 undo，之后进入有限的 recent history。
+**已确认：** 勾选后先移到当页 Purchased section 并支持 undo，之后进入有限的 recent history。
 
 不建立长期购物分析、价格历史或 spending dashboard。
 

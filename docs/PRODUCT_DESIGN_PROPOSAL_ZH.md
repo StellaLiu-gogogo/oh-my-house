@@ -175,7 +175,7 @@ HouseholdMember 包含 name、avatar、display color 和 preferred display langu
 -   Today 使用少量 cards 和清晰的 domain sections。
 -   Chores、Shopping、Wishlist 和 Inventory 以 list 为主。
 -   Meal Planner 使用一周视图。
--   Calendar 使用日期视图或 timeline，并提供 domain filters。
+-   iPhone Calendar 使用月视图和所选日期列表，并提供 domain filters。
 -   icon、文字和弱化的颜色共同区分 domain，不依赖单一颜色。
 -   成员使用 avatar、name 和稳定 display color 识别。
 -   layout 支持中英文长度差异，不使用依赖字符数的固定宽度。
