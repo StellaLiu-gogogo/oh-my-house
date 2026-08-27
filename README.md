@@ -6,7 +6,7 @@ Oh My House 是一个面向 2–4 人小家庭的轻量 Household Companion。
 
 ## 当前状态
 
-项目的 **Product Design v0.1 已确认**。尚未开始技术架构选择，也尚未写代码。
+项目的 **Product Design v0.1 已确认**。iCloud / CloudKit 云端数据方向已确认，其他技术细节尚未选定，也尚未写代码。
 
 当前确认的核心领域：
 
