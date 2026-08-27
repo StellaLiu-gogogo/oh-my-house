@@ -25,6 +25,7 @@ Oh My House 是一个面向 2–4 人小家庭的轻量 Household Companion。
 - [主需求文档](./HOUSEHOLD_COMPANION_REQUIREMENTS_ZH.md)
 - [Product Design Proposal v0.1](./docs/PRODUCT_DESIGN_PROPOSAL_ZH.md)
 - [Screen Architecture & Interaction Flows v0.1](./docs/SCREEN_ARCHITECTURE_AND_FLOWS_ZH.md)
+- [Core Tab Wireframe Notes v0.1](./docs/CORE_TAB_WIREFRAME_NOTES_ZH.md)
 
 `HOUSEHOLD_COMPANION_REQUIREMENTS_ZH.md` 是当前阶段的 source of truth。
 

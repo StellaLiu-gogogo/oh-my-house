@@ -339,26 +339,26 @@ Lists 和 cards 只显示当前成员首选语言，不并排显示中英文。
 5. **Calm completion：** 完成反馈清晰但克制，不做 productivity gamification。
 6. **Domain ownership：** 跨模块视图不创建原记录的 copy。
 
-## 10. 建议下一轮确认的决定
+## 10. 已确认的交互决定
 
-以下选择会影响下一轮 wireframe，适合优先 review：
+以下选择已经用户确认，可作为下一轮界面草图的前提：
 
 ### 10.1 Today 主结构（已确认）
 
 使用 Meals、Chores、Home / Maintenance、Events 等生活领域分区，不使用完整时间轴。
 有精确时间的 Event 仅在自己的分区内按时间排序。
 
-### 10.2 Plan 首页
+### 10.2 Plan 首页（已确认）
 
-**Agent 建议：** 默认显示 Meals、Chores 和 Events 的周摘要，Calendar 作为顶部次级入口。
+默认显示 Meals、Chores 和 Events 的周摘要，Calendar 作为顶部次级入口。
 
-### 10.3 Create 方式
+### 10.3 Create 方式（已确认）
 
-**Agent 建议：** 使用 contextual add，不建立包含所有类型的全局加号。Today 可保留一个有限快捷菜单。
+使用“根据当前页面添加”的方式，不建立包含所有类型的全局加号。Today 可保留一个有限快捷菜单。
 
-### 10.4 Shopping 勾选行为
+### 10.4 Shopping 勾选行为（已确认）
 
-**Agent 建议：** 勾选后先移到当页 Purchased section 并支持 undo，稍后进入有限 recent history，不长期统计消费。
+勾选后先移到当页 Purchased section 并支持 undo，稍后进入有限 recent history，不长期统计消费。
 
 ## 11. 可以延后的问题
 

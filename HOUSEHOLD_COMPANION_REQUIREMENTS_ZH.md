@@ -1056,3 +1056,33 @@ Today 页面不使用小时级 timeline（时间轴）。这种表达对于本�
 
 Today 应按照 Meals、Chores、Maintenance / Home、Household Events 等生活领域分区展示。
 具有精确时间的 Household Event 可以在 Events 分区内部按时间排序，但整个 Today 页面不转换成时间轴。
+
+## 19.6 Plan 首页与 Calendar 入口
+
+Plan 首页默认显示 Meals、Chores 和 Household Events 的本周简短概况。
+
+Calendar 是 Plan 顶部的次级入口，用于按具体日期查看跨模块内容。Plan 首页不直接复制完整的
+Meal Planner、Chore List 或 Calendar。
+
+## 19.7 根据当前页面添加内容
+
+创建入口采用“根据当前页面添加”的方式：
+
+-   在 Shopping 中点击添加，直接添加 Shopping Item；
+-   在 Chores 中点击添加，直接添加 Chore；
+-   在 Wishlist 中点击添加，直接添加 Wishlist Item；
+-   其他页面遵循同样原则。
+
+不设置一个包含 Meal、Chore、Event、Shopping、Wishlist、Inventory、Maintenance
+等所有类型的巨大全局创建菜单。
+
+Today 可以保留少量最常用的快捷添加，但不能变成所有创建类型的目录。
+
+## 19.8 Shopping Item 勾选后的行为
+
+Shopping Item 被勾选为已购买后：
+
+1.  先移动到当前页面的 Purchased 区域；
+2.  允许用户立即 undo；
+3.  稍后从当前购物清单移入有限的 recent history；
+4.  不建立长期消费统计、价格分析或 spending dashboard。
