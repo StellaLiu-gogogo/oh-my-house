@@ -115,11 +115,12 @@ Household
 
 现阶段 **HouseholdMember 不需要等同于 authenticated user account**。
 
-不要为了未来可能的共享同步，提前建立复杂 account / permission system。
+多设备同步已经是核心要求，但不要因此把 HouseholdMember 变成登录账号，也不要提前建立复杂的
+account / permission system。
 
 ------------------------------------------------------------------------
 
-## 2.4 Local-first，保持简单
+## 2.4 Local-first 与多设备同步
 
 优先考虑：
 
@@ -129,8 +130,13 @@ Household
 -   容易维护
 -   容易迁移
 -   对开源用户友好
+-   iPhone、iPad 与 Mac 之间保持家庭数据一致
 
-未来可以加入 sync，但不要为了未来可能的同步过度设计 backend。
+多设备同步是当前核心要求，不再是未来功能。App 应在网络暂时不可用时仍可查看和编辑已有家庭数据，
+恢复连接后继续同步。
+
+同步的具体技术和服务尚未选择。不要为了同步过度设计商业 SaaS backend，也不要把简单的个人多设备同步
+扩大成企业账号、组织管理或复杂权限系统。
 
 ------------------------------------------------------------------------
 
@@ -1037,7 +1043,8 @@ Storage 和 Whole Home 等真实场景。
 
 ## 19.4 Lightweight Household Members
 
-一台设备上可以设置 multiple household members。每个成员当前只需要：
+同一个 household 可以设置 multiple household members，并在 iPhone、iPad 与 Mac 之间同步这些成员资料。
+每个成员当前只需要：
 
 -   name
 -   avatar
@@ -1046,7 +1053,7 @@ Storage 和 Whole Home 等真实场景。
 
 不建立正式 account system、复杂登录、角色或权限管理。
 
-当前查看者可以在设备上选择或切换，App 记住该设备当前使用的成员，并根据该成员的
+当前查看者可以在每台设备上选择或切换，App 分别记住该设备当前使用的成员，并根据该成员的
 preferred display language 显示内容。
 
 ## 19.5 Today 不使用时间轴
@@ -1269,4 +1276,35 @@ Today 和 Calendar 中的项目始终打开并更新原模块记录，不创建 
 -   移除后提供受影响项目的检查入口；
 -   家庭中始终至少保留一位成员。
 
-家庭名称、多设备同步、App 访问锁、访客模式和清除整个家庭的流程以后再决定。
+家庭名称、App 访问锁、访客模式和清除整个家庭的流程以后再决定。
+
+## 19.17 多终端设备同步
+
+同一个 household 的数据必须能够在用户的 iPhone、iPad 和 Mac 之间同步。多设备同步是第一阶段核心能力，
+不再作为未来扩展。
+
+同步范围包括：
+
+-   Household Members 及头像；
+-   Meals 与 Recipes；
+-   Chores；
+-   Shopping；
+-   Wishlist、Inventory 与 Maintenance；
+-   Household Events；
+-   用户创建内容的原文与已有翻译；
+-   完成状态和相关历史。
+
+以下内容保留为每台设备自己的状态，不应随着另一台设备切换：
+
+-   当前使用的 Household Member；
+-   本次临时选择的显示语言；
+-   设备通知权限和适合设备本身的设置；
+-   当前打开的页面。
+
+App 在网络暂时不可用时应允许查看和编辑已有数据，恢复连接后继续同步。正常同步不应要求用户反复手动刷新，
+只有出现持续问题时才需要显示简明状态。
+
+当前已确认的是用户自己的 iPhone、iPad 与 Mac 之间同步。不同家庭成员使用各自独立设备和不同平台身份，
+共同编辑同一个 household 是否必须进入第一阶段，仍需用户确认。
+
+具体同步服务、数据存储技术和冲突处理实现尚未选择，不在当前产品设计阶段决定。
