@@ -31,6 +31,13 @@ Events 默认使用 Upcoming List，也就是按照日期显示接下来会发�
 
 Calendar 仍然可以从 Plan 进入，用于和 Meals、Chores、Maintenance 一起查看某一天。
 
+固定入口已经确认：
+
+    Plan → Events
+
+Events 不使用独立的底部 Tab。Today 只在当天有相关 Event 或 reminder 时显示 Events 分区；
+没有内容时不显示空分区。
+
 ## 3. 创建 Event
 
 最少需要：

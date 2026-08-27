@@ -161,6 +161,9 @@ Chores 默认使用简单 scope switcher：
 
 Events 默认显示 Upcoming List，比月历更适合少量家庭事件。Calendar 是另一种查看方式，不是唯一页面。
 
+Events 的固定入口为 Plan → Events。Today 只在当天存在相关内容时显示 Events 分区，
+Events 不占用单独的底部 Tab。
+
 ### 4.6 Calendar
 
 Calendar 从 Plan 顶部进入，可按以下 domain 过滤：

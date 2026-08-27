@@ -1128,6 +1128,13 @@ Chore 只有 title 是必填项。日期、负责人、重复、提醒和 descri
 Events 首页默认按照日期显示接下来会发生的家庭事件。Events 首页本身没有“下一步”操作，
 主要操作只有查看 Event、添加 Event，以及进入 Calendar。
 
+Events 的固定入口位于：
+
+    Plan → Events
+
+Events 不占用单独的底部 Tab。Today 只在当天存在相关 Event 或 reminder 时显示 Events 分区；
+没有相关内容时不显示空分区。Calendar 用于按日期与 Meals、Chores、Maintenance 一起查看 Event。
+
 创建或编辑 Event 使用一个页面完成，不建立没有必要的多步流程。Reminder 设置可以在同一页面中展开。
 
 Event name 和 date 必填。时间可选择准确时间、时间范围或全天。
