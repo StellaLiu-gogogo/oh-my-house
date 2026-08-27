@@ -87,7 +87,7 @@ Today 不负责完整规划、历史搜索或长表管理。
 
 ### 3.3 排序原则
 
-**Agent 建议：** Today 以 domain sections 为主，而不是完整的小时级 timeline。
+**已确认：** Today 以生活领域分区为主，而不是完整的小时级时间轴。
 
 Meal 和多数 Chore 只关心“今天”或“晚上”。强制使用时间轴会要求用户为大量家庭内容设置不必要的精确时间。
 具有精确时间的 Event 可以在自己的 section 内按时间排序。
@@ -343,9 +343,10 @@ Lists 和 cards 只显示当前成员首选语言，不并排显示中英文。
 
 以下选择会影响下一轮 wireframe，适合优先 review：
 
-### 10.1 Today 主结构
+### 10.1 Today 主结构（已确认）
 
-**Agent 建议：** 使用 domain sections，不使用完整 timeline。有精确时间的 Event 仅在自己的 section 内按时间排序。
+使用 Meals、Chores、Home / Maintenance、Events 等生活领域分区，不使用完整时间轴。
+有精确时间的 Event 仅在自己的分区内按时间排序。
 
 ### 10.2 Plan 首页
 

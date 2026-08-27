@@ -956,6 +956,8 @@ Events / Today 如何连接，同时保持清晰边界。
 9.  优先保持产品简单、生活化、低摩擦。
 10. 任何未来扩展都应遵循： \> Design for extension, not premature
     complexity.
+11. 与用户沟通时优先使用日常、容易理解的语言。必须使用产品设计或技术术语时，
+    应先用中文解释其具体含义，不要默认用户已经熟悉该术语。
 
 ------------------------------------------------------------------------
 
@@ -1046,3 +1048,11 @@ Storage 和 Whole Home 等真实场景。
 
 当前查看者可以在设备上选择或切换，App 记住该设备当前使用的成员，并根据该成员的
 preferred display language 显示内容。
+
+## 19.5 Today 不使用时间轴
+
+Today 页面不使用小时级 timeline（时间轴）。这种表达对于本产品过于细化，也会迫使用户为
+大量家庭内容填写不必要的精确时间。
+
+Today 应按照 Meals、Chores、Maintenance / Home、Household Events 等生活领域分区展示。
+具有精确时间的 Household Event 可以在 Events 分区内部按时间排序，但整个 Today 页面不转换成时间轴。
