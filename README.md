@@ -30,6 +30,7 @@ Oh My House 是一个面向 2–4 人小家庭的轻量 Household Companion。
 - [Chore Assignment & Rotation Flow v0.1](./docs/CHORE_ASSIGNMENT_AND_ROTATION_FLOW_ZH.md)
 - [Household Events & Reminders Flow v0.1](./docs/HOUSEHOLD_EVENTS_AND_REMINDERS_FLOW_ZH.md)
 - [Bilingual Display Control v0.1](./docs/BILINGUAL_DISPLAY_CONTROL_ZH.md)
+- [Home Lifecycle Flow v0.1](./docs/HOME_LIFECYCLE_FLOW_ZH.md)
 
 `HOUSEHOLD_COMPANION_REQUIREMENTS_ZH.md` 是当前阶段的 source of truth。
 
