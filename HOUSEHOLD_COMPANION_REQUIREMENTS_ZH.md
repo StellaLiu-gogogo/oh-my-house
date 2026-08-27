@@ -1161,3 +1161,25 @@ Event 不自动创建 Chore。只有需要负责人和完成状态时，用户�
 
 当前 Agent 建议：中文 / English 切换同时影响 UI 和可翻译的共享内容；
 “查看原文”只影响用户创建的共享内容，不改变 UI 语言。
+
+## 19.13 Home Lifecycle
+
+Home 中 Wishlist、Inventory 与 Maintenance 保持为独立记录，并通过下列流程自然连接：
+
+``` text
+Wishlist → Purchased → Inventory → Maintenance → Today / Calendar
+```
+
+已确认的具体行为：
+
+1.  新建 Wishlist Item 时只有名称必填，状态默认是 Idea；
+2.  Wishlist Item 标记为 Purchased 后，询问用户是否添加到 Inventory，不自动创建；
+3.  原 Wishlist Item 继续保留 Purchased 状态，新的 Inventory Item 与它保持来源关系；
+4.  名称、品牌、型号、购买价格、购买日期、商品链接等适合的资料可以带入 Inventory，
+    但保存前允许用户检查和修改；
+5.  Inventory Item 只有名称必填，房间或区域允许暂时选择“未指定”；
+6.  Maintenance 只有“要做什么”和“下一次日期”必填，重复、负责人、提醒和备注可选；
+7.  完成一次 Maintenance 后保留历史；如果设置了重复，则安排下一次日期。
+
+到期的 Maintenance 出现在 Today，未来日期可以在 Calendar 中查看，物品详情、维护计划和完成历史
+仍由 Home 管理。Home 各级页面继续遵守每个界面提供翻译 / 语言入口的系统要求。

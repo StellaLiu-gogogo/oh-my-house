@@ -2,7 +2,7 @@
 
 - **日期：** 2026-08-27
 - **阶段：** Product Design
-- **状态：** Agent 建议，等待用户 review
+- **状态：** 核心流程已由用户确认
 - **范围：** Wishlist → Purchased → Inventory → Maintenance → Today
 
 ## 1. 这条流程解决什么问题
@@ -29,7 +29,7 @@ Home 首页保留三个清楚的入口：
 
 ## 3. Wishlist
 
-**Agent 建议：** 新建 Wishlist Item 时只要求填写名称，状态默认是 Idea。
+新建 Wishlist Item 时只要求填写名称，状态默认是 Idea。
 
 其他内容都可选：
 
@@ -48,7 +48,7 @@ Home 首页保留三个清楚的入口：
 
     已经买到了。要添加到 Inventory 吗？
 
-**Agent 建议：** 不要自动创建 Inventory Item。
+不要自动创建 Inventory Item。
 
 原因是有些购买不值得长期记录，例如装饰品或低价值消耗品。由用户确认一次，可以避免 Inventory 很快变得杂乱。
 
@@ -73,7 +73,7 @@ Home 首页保留三个清楚的入口：
 
 用户保存前仍然可以检查和修改。
 
-**Agent 建议：** Inventory 只要求名称。房间或区域可以选择“未指定”，但界面应明显提醒用户补充，因为按房间查找物品通常最自然。
+Inventory 只要求名称。房间或区域可以选择“未指定”，但界面应明显提醒用户补充，因为按房间查找物品通常最自然。
 
 暂时不需要复杂的资产编号、折旧、预算或财务报表。
 
@@ -81,7 +81,7 @@ Home 首页保留三个清楚的入口：
 
 在 Inventory Item 详情页提供“添加维护计划”。新建时自动关联当前物品，不需要用户再搜索一次。
 
-**Agent 建议：** Maintenance 最少需要：
+Maintenance 最少需要：
 
 - 要做什么；
 - 下一次日期。
@@ -128,7 +128,7 @@ Home 首页以及 Wishlist、Inventory、Maintenance 的列表、详情、新建
 
 它可以用于切换中文 / English 或查看用户创建内容的原文。具体菜单行为继续遵循独立的 Bilingual Display Control 方案，在用户确认前不视为最终要求。
 
-## 10. 当前建议用户确认
+## 10. 已确认的选择
 
 1. Wishlist 新建时只要求名称，状态默认是 Idea；
 2. 标记 Purchased 后询问是否添加到 Inventory，不自动创建；
@@ -138,7 +138,7 @@ Home 首页以及 Wishlist、Inventory、Maintenance 的列表、详情、新建
 6. Maintenance 只要求“要做什么”和“下一次日期”；
 7. 完成 Maintenance 后保留历史，如果有重复则安排下一次。
 
-上述内容目前都是设计建议，尚未写入主需求文档的“已确认决定”。
+上述内容已于 2026-08-27 由用户确认，并同步写入主需求文档。
 
 ## 11. 可以以后决定
 
