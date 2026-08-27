@@ -1086,3 +1086,21 @@ Shopping Item 被勾选为已购买后：
 2.  允许用户立即 undo；
 3.  稍后从当前购物清单移入有限的 recent history；
 4.  不建立长期消费统计、价格分析或 spending dashboard。
+
+## 19.9 Meal Planning → Shopping
+
+iPhone 的一周餐食视图使用从周一到周日的纵向列表，每天显示 Lunch / Dinner 等餐食位置，
+不使用拥挤的七列横向表格。
+
+添加一顿饭时同时支持：
+
+-   只写餐食名称；
+-   选择 Recipe；
+-   重复最近吃过的餐食。
+
+新增餐食时默认选择所有 Household Members 一起吃，用户可以按实际情况取消某位成员。
+参与成员与 servings 分开记录，因为两个人也可能做四份并保留剩菜。
+
+Recipe ingredients 必须经过用户简单检查后才能加入 Shopping，不自动加入。
+
+第一阶段不根据“咖喱饭”“煮面”等简单自由文本自动猜测 ingredients。
