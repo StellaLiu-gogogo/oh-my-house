@@ -1182,3 +1182,29 @@ Wishlist → Purchased → Inventory → Maintenance → Today / Calendar
 
 到期的 Maintenance 出现在 Today，未来日期可以在 Calendar 中查看，物品详情、维护计划和完成历史
 仍由 Home 管理。Home 各级页面继续遵守每个界面提供翻译 / 语言入口的系统要求。
+
+## 19.14 Unified Shopping 详细行为
+
+Shopping 默认显示全部购物项，并按来源分组：
+
+``` text
+Grocery
+Household Supplies
+Maintenance
+```
+
+顶部可以临时选择只看其中一类，但这些分类仍然属于同一张 Shopping List，不拆成三套独立清单。
+
+已确认的具体行为：
+
+1.  手动添加 Shopping Item 时只有名称必填；
+2.  手动添加的来源默认是 Grocery，并允许改为 Household Supplies 或 Maintenance；
+3.  Meals、Maintenance 等模块产生的购物项自动保留来源关系；
+4.  发现相似项目时只提示，由用户决定合并或继续分开；
+5.  合并时由用户检查并填写最终数量，系统不自动换算不同单位；
+6.  合并后的一个 Shopping Item 可以保留多个来源；
+7.  最近购买记录提供“再次添加”；
+8.  将 Maintenance 所需用品标记为已购买，不会自动完成对应的 Maintenance。
+
+Purchased 移入最近购买的具体时间、最近记录的保留范围、清单手动排序、商店或货架分类、条码、价格
+与优惠信息以后再决定。当前不建立库存扣减、消费统计或家庭账本。

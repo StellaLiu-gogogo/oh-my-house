@@ -2,7 +2,7 @@
 
 - **日期：** 2026-08-27
 - **阶段：** Product Design
-- **状态：** Agent 建议，等待用户 review
+- **状态：** 核心流程已由用户确认
 - **范围：** Grocery、Household Supplies、Maintenance Item 的统一购物清单
 
 ## 1. Shopping 解决什么问题
@@ -17,7 +17,7 @@ Grocery、Household Supplies 和 Maintenance Item 使用同一张清单，但仍
 
 ## 2. Shopping 首页
 
-**Agent 建议：** 默认显示“全部”，并按来源分成三个区：
+默认显示“全部”，并按来源分成三个区：
 
     Grocery
     Household Supplies
@@ -39,7 +39,7 @@ Grocery、Household Supplies 和 Maintenance Item 使用同一张清单，但仍
 
 从 Shopping 页面点击添加，只创建 Shopping Item，不出现包含其他模块的选择菜单。
 
-**Agent 建议：** 只有名称必填。以下内容可选：
+只有名称必填。以下内容可选：
 
 - 数量或简短说明；
 - 来源；
@@ -74,7 +74,7 @@ Recipe ingredients 经过用户检查后加入 Shopping，并自动带上对应�
 
     [合并并检查] [仍然分开]
 
-**Agent 建议：** 不自动合并。
+不自动合并。
 
 如果用户选择合并：
 
@@ -92,7 +92,7 @@ Recipe ingredients 经过用户检查后加入 Shopping，并自动带上对应�
 2.  允许立即撤销；
 3.  稍后移入有限的最近购买记录。
 
-**补充建议：** 最近购买记录提供“再次添加”按钮，方便重新购买洗碗机清洁片、厨房纸等常用品。
+最近购买记录提供“再次添加”按钮，方便重新购买洗碗机清洁片、厨房纸等常用品。
 
 购买完成只改变 Shopping Item 的状态，不会自动完成来源模块中的事情。例如购买空气净化器滤芯后，
 “更换空气净化器滤芯”这项 Maintenance 仍然需要真正完成后再勾选。
@@ -106,7 +106,7 @@ Shopping 首页、筛选后的列表、添加、编辑、检查重复项、Purch
 - 品牌、型号、数量、价格和链接不做机械翻译；
 - 查看原文时，不会复制出另一条 Shopping Item。
 
-## 8. 当前建议用户确认
+## 8. 已确认的选择
 
 1. 默认显示全部购物项，并按 Grocery、Household Supplies、Maintenance 分组；
 2. 顶部可以临时筛选来源，但不拆成三张清单；
@@ -117,7 +117,7 @@ Shopping 首页、筛选后的列表、添加、编辑、检查重复项、Purch
 7. 最近购买可以“再次添加”；
 8. 买到 Maintenance 所需用品，不会自动完成 Maintenance 本身。
 
-上述内容目前是设计建议，尚未写入主需求文档的“已确认决定”。
+上述内容已于 2026-08-27 由用户确认，并同步写入主需求文档。
 
 ## 9. 可以以后决定
 
