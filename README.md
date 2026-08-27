@@ -39,6 +39,7 @@ Oh My House 是一个面向 2–4 人小家庭的轻量 Household Companion。
 - [Product Design Status & Open Decisions v0.1](./docs/PRODUCT_DESIGN_STATUS_AND_OPEN_DECISIONS_ZH.md)
 - [Notification Delivery Rules v0.1](./docs/NOTIFICATION_DELIVERY_RULES_ZH.md)
 - [Technical Architecture Options v0.1](./docs/TECHNICAL_ARCHITECTURE_OPTIONS_ZH.md)
+- [Apple Native Architecture Proposal v0.1](./docs/APPLE_NATIVE_ARCHITECTURE_PROPOSAL_ZH.md)
 
 `HOUSEHOLD_COMPANION_REQUIREMENTS_ZH.md` 是当前阶段的 source of truth。
 
