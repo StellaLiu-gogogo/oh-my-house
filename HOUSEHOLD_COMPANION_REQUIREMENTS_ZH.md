@@ -1386,3 +1386,21 @@ Meal-related reminder 的具体使用场景和接收对象可以在以后有真�
 创建 household 的 iCloud 用户在 Apple 底层是数据所有者，并负责邀请和停止设备访问。其他已连接成员
 仍然共同编辑全部日常家庭内容，但不能管理谁可以访问 household。数据导出和备份方案需要在技术设计中
 作为重要保护措施。
+
+## 19.21 已确认的 Apple 技术方向
+
+已确认使用以下技术组合：
+
+-   SwiftUI 制作 iPhone、iPad 和 Mac 页面；
+-   Core Data 保存每台设备上的本地数据并支持离线使用；
+-   CloudKit 将完整 household 云端数据保存在创建者的 iCloud，并共享给其他使用者；
+-   Apple Translation 翻译中英文用户生成内容；
+-   Apple 通知能力处理 Chore、Maintenance 和 Event reminder。
+
+最低系统版本已经确认为 iOS 18、iPadOS 18 和 macOS 15。
+
+正式 App 开发前先做一个小型可行性验证，只验证本地保存、CloudKit 多设备与多用户共享、一次性邀请、
+离线修改、头像和中英文翻译。验证通过前不搭建完整 Today、Plan、Shopping 和 Home 页面。
+
+开始验证需要完整 Xcode，以及能够为 App 启用 CloudKit 的 Apple 开发者账号。购买或注册开发者计划
+不由项目自动执行，必须由用户自行决定。

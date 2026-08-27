@@ -6,7 +6,8 @@ Oh My House 是一个面向 2–4 人小家庭的轻量 Household Companion。
 
 ## 当前状态
 
-项目的 **Product Design v0.1 已确认**。iCloud / CloudKit 云端数据方向已确认，其他技术细节尚未选定，也尚未写代码。
+项目的 **Product Design v0.1 已确认**。Apple 原生核心技术方向已经确认，准备进入可行性验证；
+正式 App 尚未开始开发。
 
 当前确认的核心领域：
 
@@ -40,6 +41,7 @@ Oh My House 是一个面向 2–4 人小家庭的轻量 Household Companion。
 - [Notification Delivery Rules v0.1](./docs/NOTIFICATION_DELIVERY_RULES_ZH.md)
 - [Technical Architecture Options v0.1](./docs/TECHNICAL_ARCHITECTURE_OPTIONS_ZH.md)
 - [Apple Native Architecture Proposal v0.1](./docs/APPLE_NATIVE_ARCHITECTURE_PROPOSAL_ZH.md)
+- [Feasibility Validation Plan v0.1](./docs/FEASIBILITY_VALIDATION_PLAN_ZH.md)
 
 `HOUSEHOLD_COMPANION_REQUIREMENTS_ZH.md` 是当前阶段的 source of truth。
 
