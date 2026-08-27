@@ -41,7 +41,14 @@
 - assignee 相关的视觉强调相应更新；
 - 不触发登录、登出或权限流程。
 
-### 2.3 Create 入口
+### 2.3 翻译 / 语言入口
+
+每个主要页面、列表、详情和创建 / 编辑页面的顶部，都显示固定的翻译 / 语言按钮。
+
+点击后至少可以选择中文、English 或查看用户创建内容的原文。该入口与 Household Member
+avatar 同时存在，不能因为成员已有 preferred display language 而省略。
+
+### 2.4 Create 入口
 
 **Agent 建议：** 每个 Tab 使用 contextual add，不建立包含所有 domain 的巨大全局创建菜单。
 

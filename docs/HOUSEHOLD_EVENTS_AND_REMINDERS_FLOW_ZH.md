@@ -2,7 +2,7 @@
 
 - **日期：** 2026-08-27
 - **阶段：** Product Design
-- **状态：** Agent 建议，等待用户 review
+- **状态：** 核心流程已由用户确认
 - **范围：** 家庭事件、重复日期、提醒、Today / Calendar 和双语通知
 
 ## 1. Event 是什么
@@ -113,27 +113,27 @@ Ruru 看到：
 
 如果家庭希望知道“谁负责”和“是否完成”，用户可以另外创建 Chore。第一阶段不自动让 Event 生成 Chore，避免一件事产生两条容易混淆的记录。
 
-## 9. 当前建议确认的选择
+## 9. 已确认的选择
 
 ### 9.1 Events 首页
 
-**Agent 建议：** 默认显示按照日期排列的 Upcoming List，Calendar 作为另一种查看方式。
+默认显示按照日期排列的 Upcoming List，Calendar 作为另一种查看方式。Events 首页没有“下一步”按钮。
 
 ### 9.2 必填内容
 
-**Agent 建议：** Event name 和 date 必填；准确时间可选，也可以是全天。
+Event name 和 date 必填；准确时间可选，也可以是全天。
 
 ### 9.3 重复选项
 
-**Agent 建议：** 第一阶段支持不重复、每周、每两周、每月和每年。
+第一阶段支持不重复、每周、每两周、每月和每年。
 
 ### 9.4 Reminder 数量
 
-**Agent 建议：** 第一阶段每个 Event 支持一个 reminder，并允许 reminder text 与 Event title 不同。
+第一阶段每个 Event 支持一个 reminder，并允许 reminder text 与 Event title 不同。
 
 ### 9.5 Event 不自动生成 Chore
 
-**Agent 建议：** 简单提醒只保存在 Event 中；只有需要负责人和完成状态时，用户才另外创建 Chore。第一阶段不自动关联或生成。
+简单提醒只保存在 Event 中；只有需要负责人和完成状态时，用户才另外创建 Chore。第一阶段不自动关联或生成。
 
 ## 10. 可以以后决定
 
