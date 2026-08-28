@@ -567,6 +567,7 @@ struct AddMealView: View {
         selectedRecipeID = recipe.id
         title = recipe.title
         servings = recipe.baseServings
+        addIngredientsToShopping = true
         selectedIngredientIDs = Set(recipe.ingredients.map(\.id))
     }
 
