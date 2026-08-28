@@ -116,6 +116,18 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         reloadMembers()
     }
 
+    func updateMemberName(_ member: MemberEntity, name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        member.name = trimmed
+        member.updatedAt = Date()
+        try? context.save()
+        if currentMemberID == member.id {
+            currentMemberName = trimmed
+        }
+        reloadMembers()
+    }
+
     func addShoppingItem(title: String, source: ShoppingSource) {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }

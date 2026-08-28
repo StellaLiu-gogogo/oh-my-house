@@ -36,6 +36,9 @@ struct MemberManagementView: View {
             }
             .navigationTitle(store.text("家庭成员", "Household Members"))
             .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    MemberLanguageButton()
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(store.text("完成", "Done")) { isPresented = false }
                 }
@@ -51,6 +54,7 @@ private struct MemberRow: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     let member: MemberEntity
     @State private var selectedPhoto: PhotosPickerItem?
+    @State private var showsEditMember = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -79,11 +83,22 @@ private struct MemberRow: View {
                 Image(systemName: "photo")
             }
             .accessibilityLabel(store.text("从相册选择头像", "Choose photo from library"))
+
+            Button {
+                showsEditMember = true
+            } label: {
+                Image(systemName: "pencil")
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(store.text("编辑成员", "Edit member"))
         }
         .task(id: selectedPhoto) {
             guard let selectedPhoto,
                   let data = try? await selectedPhoto.loadTransferable(type: Data.self) else { return }
             store.updateAvatar(for: member, data: data)
+        }
+        .sheet(isPresented: $showsEditMember) {
+            EditMemberView(member: member)
         }
     }
 }
@@ -160,6 +175,9 @@ private struct AddMemberView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(store.text("取消", "Cancel")) { dismiss() }
                 }
+                ToolbarItem(placement: .automatic) {
+                    MemberLanguageButton()
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(store.text("添加", "Add")) {
                         store.addMember(name: name, colorHex: colorHex)
@@ -169,6 +187,53 @@ private struct AddMemberView: View {
                 }
             }
         }
+    }
+}
+
+private struct EditMemberView: View {
+    @EnvironmentObject private var store: LocalHouseholdDataStore
+    @Environment(\.dismiss) private var dismiss
+    let member: MemberEntity
+    @State private var name: String
+
+    init(member: MemberEntity) {
+        self.member = member
+        _name = State(initialValue: member.name)
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                TextField(store.text("名字", "Name"), text: $name)
+            }
+            .navigationTitle(store.text("编辑成员", "Edit Member"))
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(store.text("取消", "Cancel")) { dismiss() }
+                }
+                ToolbarItem(placement: .automatic) {
+                    MemberLanguageButton()
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(store.text("保存", "Save")) {
+                        store.updateMemberName(member, name: name)
+                        dismiss()
+                    }
+                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
+    }
+}
+
+private struct MemberLanguageButton: View {
+    @EnvironmentObject private var store: LocalHouseholdDataStore
+
+    var body: some View {
+        Button(store.displayLanguage == .chinese ? "文" : "A") {
+            store.toggleDisplayLanguage()
+        }
+        .accessibilityLabel(store.text("切换为英文", "Switch to Chinese"))
     }
 }
 
