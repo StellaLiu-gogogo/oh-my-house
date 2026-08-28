@@ -7,6 +7,22 @@ struct MealPlanItem: Codable, Identifiable {
     var slot: String
     var participantIDs: [UUID]
     var servings: Int
+    var recipeID: UUID? = nil
+}
+
+struct RecipeIngredient: Codable, Identifiable {
+    let id: UUID
+    var name: String
+    var quantity: Double?
+    var unit: String
+}
+
+struct RecipeItem: Codable, Identifiable {
+    let id: UUID
+    var title: String
+    var baseServings: Int
+    var ingredients: [RecipeIngredient]
+    var instructions: String
 }
 
 struct ChoreItem: Codable, Identifiable {

@@ -29,6 +29,7 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
     @Published private(set) var members: [MemberEntity] = []
     @Published private(set) var shoppingItems: [ShoppingItemEntity] = []
     @Published private(set) var meals: [MealPlanItem] = []
+    @Published private(set) var recipes: [RecipeItem] = []
     @Published private(set) var chores: [ChoreItem] = []
     @Published private(set) var events: [HouseholdEventItem] = []
     @Published private(set) var wishlistItems: [WishlistItem] = []
@@ -169,20 +170,23 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         saveAndReload()
     }
 
+    @discardableResult
     func addMeal(
         title: String,
         date: Date,
         slot: String,
         participantIDs: [UUID],
-        servings: Int
-    ) {
+        servings: Int,
+        recipeID: UUID? = nil
+    ) -> UUID? {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
+        guard !trimmed.isEmpty else { return nil }
         let item = MealPlanItem(
             id: UUID(), title: trimmed, date: date, slot: slot,
-            participantIDs: participantIDs, servings: servings
+            participantIDs: participantIDs, servings: servings, recipeID: recipeID
         )
         savePlanningItem(item, title: trimmed, entityName: "MealEntity")
+        return item.id
     }
 
     func updateMeal(
@@ -191,7 +195,8 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         date: Date,
         slot: String,
         participantIDs: [UUID],
-        servings: Int
+        servings: Int,
+        recipeID: UUID? = nil
     ) {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
@@ -201,11 +206,71 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         changed.slot = slot
         changed.participantIDs = participantIDs
         changed.servings = servings
+        changed.recipeID = recipeID
         updatePlanningItem(changed, title: trimmed, entityName: "MealEntity")
     }
 
     func deleteMeal(_ item: MealPlanItem) {
         deletePlanningItem(id: item.id, entityName: "MealEntity")
+    }
+
+    func addRecipe(
+        title: String,
+        baseServings: Int,
+        ingredients: [RecipeIngredient],
+        instructions: String
+    ) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let recipe = RecipeItem(
+            id: UUID(), title: trimmed, baseServings: max(baseServings, 1),
+            ingredients: ingredients.filter { !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty },
+            instructions: instructions.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
+        savePlanningItem(recipe, title: trimmed, entityName: "RecipeEntity")
+    }
+
+    func updateRecipe(
+        _ item: RecipeItem,
+        title: String,
+        baseServings: Int,
+        ingredients: [RecipeIngredient],
+        instructions: String
+    ) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        var changed = item
+        changed.title = trimmed
+        changed.baseServings = max(baseServings, 1)
+        changed.ingredients = ingredients.filter { !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        changed.instructions = instructions.trimmingCharacters(in: .whitespacesAndNewlines)
+        updatePlanningItem(changed, title: trimmed, entityName: "RecipeEntity")
+    }
+
+    func deleteRecipe(_ item: RecipeItem) {
+        deletePlanningItem(id: item.id, entityName: "RecipeEntity")
+    }
+
+    func addRecipeIngredientsToShopping(
+        recipe: RecipeItem,
+        mealID: UUID,
+        servings: Int,
+        ingredientIDs: Set<UUID>
+    ) {
+        let ratio = Double(max(servings, 1)) / Double(max(recipe.baseServings, 1))
+        for ingredient in recipe.ingredients where ingredientIDs.contains(ingredient.id) {
+            let amount: String
+            if let quantity = ingredient.quantity {
+                let scaled = quantity * ratio
+                amount = scaled.formatted(.number.precision(.fractionLength(0...2)))
+            } else {
+                amount = ""
+            }
+            let title = [amount, ingredient.unit, ingredient.name]
+                .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+                .joined(separator: " ")
+            addShoppingItem(title: title, source: .meals, sourceID: mealID)
+        }
     }
 
     func addChore(
@@ -488,6 +553,8 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
     private func reloadPlanningItems() {
         meals = fetchPlanningItems(entityName: "MealEntity", as: MealPlanItem.self)
             .sorted { $0.date < $1.date }
+        recipes = fetchPlanningItems(entityName: "RecipeEntity", as: RecipeItem.self)
+            .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
         chores = fetchPlanningItems(entityName: "ChoreEntity", as: ChoreItem.self)
             .sorted { ($0.dueDate ?? .distantFuture) < ($1.dueDate ?? .distantFuture) }
         events = fetchPlanningItems(entityName: "HouseholdEventEntity", as: HouseholdEventItem.self)

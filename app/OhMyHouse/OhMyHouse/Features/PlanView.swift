@@ -82,6 +82,13 @@ struct MealPlanView: View {
 
     var body: some View {
         List {
+            Section {
+                NavigationLink {
+                    RecipeLibraryView()
+                } label: {
+                    Label(store.text("打开食谱库", "Open Recipe Library"), systemImage: "book.closed")
+                }
+            }
             ForEach(weekDays, id: \.self) { day in
                 Section {
                     let meals = store.meals.filter { Calendar.current.isDate($0.date, inSameDayAs: day) }
@@ -95,6 +102,11 @@ struct MealPlanView: View {
                                     Text(meal.slot == "lunch" ? store.text("午餐", "Lunch") : store.text("晚餐", "Dinner"))
                                         .foregroundStyle(.secondary)
                                     Text(meal.title)
+                                    if meal.recipeID != nil {
+                                        Image(systemName: "book.closed.fill")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
                                     Spacer()
                                     Text(store.text("\(meal.servings) 份", "\(meal.servings) servings"))
                                         .font(.caption)
@@ -309,6 +321,9 @@ struct AddMealView: View {
     @State private var slot: String
     @State private var participantIDs: Set<UUID>
     @State private var servings: Int
+    @State private var selectedRecipeID: UUID?
+    @State private var addIngredientsToShopping = false
+    @State private var selectedIngredientIDs = Set<UUID>()
 
     init(defaultDate: Date, item: MealPlanItem? = nil) {
         self.item = item
@@ -317,12 +332,51 @@ struct AddMealView: View {
         _slot = State(initialValue: item?.slot ?? "dinner")
         _participantIDs = State(initialValue: Set(item?.participantIDs ?? []))
         _servings = State(initialValue: item?.servings ?? 1)
+        _selectedRecipeID = State(initialValue: item?.recipeID)
+    }
+
+    private var selectedRecipe: RecipeItem? {
+        store.recipes.first { $0.id == selectedRecipeID }
+    }
+
+    private var matchingRecipes: [RecipeItem] {
+        let query = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty, selectedRecipeID == nil else { return [] }
+        return store.recipes.filter {
+            $0.title.localizedCaseInsensitiveContains(query) ||
+            query.localizedCaseInsensitiveContains($0.title)
+        }
+        .prefix(3).map { $0 }
     }
 
     var body: some View {
         NavigationStack {
             Form {
                 TextField(store.text("吃什么", "Meal name"), text: $title)
+                if !matchingRecipes.isEmpty {
+                    Section(store.text("食谱建议", "Recipe Suggestions")) {
+                        ForEach(matchingRecipes) { recipe in
+                            Button {
+                                selectRecipe(recipe)
+                            } label: {
+                                Label(recipe.title, systemImage: "book.closed")
+                            }
+                        }
+                    }
+                }
+                if let selectedRecipe {
+                    Section(store.text("已选择食谱", "Selected Recipe")) {
+                        HStack {
+                            Label(selectedRecipe.title, systemImage: "book.closed.fill")
+                            Spacer()
+                            Button(store.text("取消选择", "Remove")) {
+                                selectedRecipeID = nil
+                                addIngredientsToShopping = false
+                                selectedIngredientIDs.removeAll()
+                            }
+                        }
+                    }
+                }
                 DatePicker(store.text("日期", "Date"), selection: $date, displayedComponents: .date)
                 Picker(store.text("餐次", "Meal"), selection: $slot) {
                     Text(store.text("午餐", "Lunch")).tag("lunch")
@@ -337,16 +391,46 @@ struct AddMealView: View {
                     }
                 }
                 Stepper(store.text("准备 \(servings) 份", "Prepare \(servings) servings"), value: $servings, in: 1...30)
+                if item == nil, let selectedRecipe, !selectedRecipe.ingredients.isEmpty {
+                    Section {
+                        Toggle(store.text("检查并加入食材", "Review and add ingredients"), isOn: $addIngredientsToShopping)
+                        if addIngredientsToShopping {
+                            ForEach(selectedRecipe.ingredients) { ingredient in
+                                Button { toggle(ingredient.id, in: &selectedIngredientIDs) } label: {
+                                    HStack {
+                                        Image(systemName: selectedIngredientIDs.contains(ingredient.id) ? "checkmark.circle.fill" : "circle")
+                                        Text(ingredientShoppingText(ingredient, recipe: selectedRecipe))
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    } header: {
+                        Text(store.text("加入购物清单", "Add to Shopping"))
+                    } footer: {
+                        Text(store.text("只会加入你勾选的食材。", "Only checked ingredients will be added."))
+                    }
+                }
             }
             .navigationTitle(item == nil ? store.text("添加餐食", "Add Meal") : store.text("编辑餐食", "Edit Meal"))
             .formScreenToolbar(canSave: !title.trimmingCharacters(in: .whitespaces).isEmpty) {
                 if let item {
                     store.updateMeal(
                         item, title: title, date: date, slot: slot,
-                        participantIDs: Array(participantIDs), servings: servings
+                        participantIDs: Array(participantIDs), servings: servings,
+                        recipeID: selectedRecipeID
                     )
                 } else {
-                    store.addMeal(title: title, date: date, slot: slot, participantIDs: Array(participantIDs), servings: servings)
+                    if let mealID = store.addMeal(
+                        title: title, date: date, slot: slot,
+                        participantIDs: Array(participantIDs), servings: servings,
+                        recipeID: selectedRecipeID
+                    ), addIngredientsToShopping, let selectedRecipe {
+                        store.addRecipeIngredientsToShopping(
+                            recipe: selectedRecipe, mealID: mealID, servings: servings,
+                            ingredientIDs: selectedIngredientIDs
+                        )
+                    }
                 }
                 dismiss()
             }
@@ -355,8 +439,28 @@ struct AddMealView: View {
                     participantIDs = Set(store.members.map(\.id))
                     servings = max(store.members.count, 1)
                 }
+                if let selectedRecipe, selectedIngredientIDs.isEmpty {
+                    selectedIngredientIDs = Set(selectedRecipe.ingredients.map(\.id))
+                }
             }
         }
+    }
+
+    private func selectRecipe(_ recipe: RecipeItem) {
+        selectedRecipeID = recipe.id
+        title = recipe.title
+        servings = recipe.baseServings
+        selectedIngredientIDs = Set(recipe.ingredients.map(\.id))
+    }
+
+    private func ingredientShoppingText(_ ingredient: RecipeIngredient, recipe: RecipeItem) -> String {
+        let ratio = Double(servings) / Double(max(recipe.baseServings, 1))
+        let quantity = ingredient.quantity.map {
+            ($0 * ratio).formatted(.number.precision(.fractionLength(0...2)))
+        } ?? ""
+        return [quantity, ingredient.unit, ingredient.name]
+            .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+            .joined(separator: " ")
     }
 }
 
