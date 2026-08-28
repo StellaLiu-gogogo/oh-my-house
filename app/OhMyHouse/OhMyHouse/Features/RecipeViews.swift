@@ -1,5 +1,6 @@
 import PhotosUI
 import SwiftUI
+import Translation
 
 #if os(macOS)
 import AppKit
@@ -267,6 +268,10 @@ struct RecipeCookingView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @Environment(\.dismiss) private var dismiss
     let recipe: RecipeItem
+    @State private var translationConfiguration: TranslationSession.Configuration?
+    @State private var translatedTitle: String?
+    @State private var translatedIngredientNames: [UUID: String] = [:]
+    @State private var translatedSteps: [UUID: String] = [:]
 
     private var cookingSteps: [RecipeStep] {
         if let steps = recipe.steps, !steps.isEmpty { return steps }
@@ -287,8 +292,8 @@ struct RecipeCookingView: View {
                 if !recipe.ingredients.isEmpty {
                     Section(store.text("食材", "Ingredients")) {
                         ForEach(recipe.ingredients) { ingredient in
-                            Text([ingredient.quantity?.formatted(.number.precision(.fractionLength(0...2))) ?? "", ingredient.unit, ingredient.name]
-                                .filter { !$0.isEmpty }.joined(separator: " "))
+                                Text([ingredient.quantity?.formatted(.number.precision(.fractionLength(0...2))) ?? "", ingredient.unit, translatedIngredientNames[ingredient.id] ?? ingredient.name]
+                                    .filter { !$0.isEmpty }.joined(separator: " "))
                         }
                     }
                 }
@@ -303,23 +308,88 @@ struct RecipeCookingView: View {
                                     .font(.headline)
                                     .frame(width: 30, height: 30)
                                     .background(.blue.opacity(0.15), in: Circle())
-                                Text(step.text)
+                                Text(translatedSteps[step.id] ?? step.text)
                             }
                             .padding(.vertical, 4)
                         }
                     }
                 }
             }
-            .navigationTitle(recipe.title)
+            .navigationTitle(translatedTitle ?? recipe.title)
             .toolbar {
                 ToolbarItem(placement: .automatic) {
-                    Button(store.displayLanguage == .chinese ? "文" : "A") { store.toggleDisplayLanguage() }
+                    Button(store.displayLanguage == .chinese ? "文" : "A") {
+                        store.toggleDisplayLanguage()
+                        prepareTranslation()
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(store.text("完成", "Done")) { dismiss() }
                 }
             }
         }
+        .translationTask(translationConfiguration) { session in
+            await translateRecipe(using: session)
+        }
+        .task {
+            prepareTranslation()
+        }
+    }
+
+    private func prepareTranslation() {
+        translatedTitle = nil
+        translatedIngredientNames = [:]
+        translatedSteps = [:]
+
+        let target = store.displayLanguage == .english
+            ? Locale.Language(identifier: "en")
+            : Locale.Language(identifier: "zh-Hans")
+        let configuration = TranslationSession.Configuration(source: nil, target: target)
+        if translationConfiguration == configuration {
+            translationConfiguration?.invalidate()
+        } else {
+            translationConfiguration = configuration
+        }
+    }
+
+    private func translateRecipe(using session: TranslationSession) async {
+        let targetIsEnglish = store.displayLanguage == .english
+        var titleResult: String?
+        var ingredientResults: [UUID: String] = [:]
+        var stepResults: [UUID: String] = [:]
+
+        if needsTranslation(recipe.title, targetIsEnglish: targetIsEnglish),
+           let response = try? await session.translate(recipe.title) {
+            titleResult = response.targetText
+        }
+
+        for ingredient in recipe.ingredients
+        where needsTranslation(ingredient.name, targetIsEnglish: targetIsEnglish) {
+            if let response = try? await session.translate(ingredient.name) {
+                ingredientResults[ingredient.id] = response.targetText
+            }
+        }
+
+        for step in cookingSteps where needsTranslation(step.text, targetIsEnglish: targetIsEnglish) {
+            if let response = try? await session.translate(step.text) {
+                stepResults[step.id] = response.targetText
+            }
+        }
+
+        await MainActor.run {
+            translatedTitle = titleResult
+            translatedIngredientNames = ingredientResults
+            translatedSteps = stepResults
+        }
+    }
+
+    private func needsTranslation(_ text: String, targetIsEnglish: Bool) -> Bool {
+        if targetIsEnglish {
+            return text.unicodeScalars.contains { scalar in
+                (0x3400...0x9FFF).contains(Int(scalar.value))
+            }
+        }
+        return text.range(of: "[A-Za-z]", options: .regularExpression) != nil
     }
 }
 

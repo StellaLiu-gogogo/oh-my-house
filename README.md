@@ -21,6 +21,9 @@ Oh My House 是一个面向 2–4 人小家庭的轻量 Household Companion。
 - Today / Calendar
 - 中英文 UI 与共享内容自动翻译
 
+食谱详情已经接入用户内容翻译：同一份食谱可以混合输入中英文，App 会按当前显示语言翻译菜名、
+食材名称和烹饪步骤，同时保留原始输入。
+
 ## 文档
 
 - [主需求文档](./HOUSEHOLD_COMPANION_REQUIREMENTS_ZH.md)
