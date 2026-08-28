@@ -2,7 +2,7 @@
 
 - **日期：** 2026-08-27
 - **阶段：** Product Design
-- **状态：** Product Design v0.1 与 Apple 原生核心技术方向已确认；等待可行性验证环境
+- **状态：** Product Design v0.1 与 Apple 原生方向已确认；第一阶段可行性验证通过
 - **目的：** 区分已确认、技术设计阶段再决定、可以以后决定的内容
 
 ## 1. 当前结论
@@ -11,7 +11,8 @@
 都已经有明确方向。
 
 多设备同步的具体体验和通知发送对象已经确认。核心技术组合已经确认为 SwiftUI、Core Data、CloudKit
-和 Apple Translation，正式 App 开发前先做可行性验证。当前等待完整 Xcode 和 Apple 开发者账号条件。
+和 Apple Translation。完整 Xcode 已安装，本地保存与 Apple Translation 真机验证已经通过；
+CloudKit、多人共享和离线冲突验证等待用户决定是否加入 Apple Developer Program。
 
 ## 2. 已确认的产品基础
 

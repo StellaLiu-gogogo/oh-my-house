@@ -2,7 +2,7 @@
 
 - **日期：** 2026-08-27
 - **阶段：** 技术可行性验证准备
-- **状态：** Xcode、本机开发组件与 iOS 模拟器已就绪；Apple Developer Program 尚未加入
+- **状态：** 本地保存与 Apple Translation 已通过；CloudKit 等待 Apple Developer Program
 - **目标：** 在正式 App 开发前验证最难、风险最高的 Apple 技术能力
 
 ## 1. 这不是正式 App
