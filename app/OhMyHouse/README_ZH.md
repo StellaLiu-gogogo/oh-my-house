@@ -14,6 +14,9 @@
 - Shopping Item 本地新增、购买和撤销；
 - Home 的 Wishlist → Inventory → Maintenance 入口；
 - 每个主页面的“文/A”语言按钮和成员头像入口；
+- 可建立多个本地家庭成员，并按名字、颜色区分；
+- 点击右上角头像切换当前使用者；
+- 每位成员可以从相册选择头像；
 - 统一 `HouseholdDataStore` 数据入口；
 - Core Data 本地数据库；
 - iCloud、邀请和多人共享入口保持隐藏。
@@ -28,4 +31,3 @@
 `app/OhMyHouse/OhMyHouse.xcodeproj`
 
 最低系统版本：iOS / iPadOS 18、macOS 15。
-

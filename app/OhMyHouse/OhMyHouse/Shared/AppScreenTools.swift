@@ -18,34 +18,13 @@ struct AppScreenTools: ViewModifier {
                     Button {
                         showsMemberSheet = true
                     } label: {
-                        Image(systemName: "person.crop.circle.fill")
+                        MemberAvatarView(member: store.currentMember, size: 28)
                     }
                     .accessibilityLabel(store.text("当前使用者", "Current member"))
                 }
             }
             .sheet(isPresented: $showsMemberSheet) {
-                NavigationStack {
-                    Form {
-                        Section(store.text("当前使用者", "Current member")) {
-                            Label(store.currentMemberName, systemImage: "person.crop.circle.fill")
-                        }
-                        Section {
-                            Text(store.text(
-                                "成员头像、颜色和切换功能将在成员模块中完成。",
-                                "Member photos, colors, and switching will be completed in the member module."
-                            ))
-                            .foregroundStyle(.secondary)
-                        }
-                    }
-                    .navigationTitle(store.text("家庭成员", "Household Members"))
-                    .toolbar {
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button(store.text("完成", "Done")) {
-                                showsMemberSheet = false
-                            }
-                        }
-                    }
-                }
+                MemberManagementView(isPresented: $showsMemberSheet)
             }
     }
 }
@@ -77,4 +56,3 @@ struct DomainSummaryCard: View {
         .padding(.vertical, 6)
     }
 }
-

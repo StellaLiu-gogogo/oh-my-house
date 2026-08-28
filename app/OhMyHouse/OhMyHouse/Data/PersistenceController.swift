@@ -7,7 +7,7 @@ class HouseholdEntity: NSManagedObject {
     @NSManaged var updatedAt: Date
 }
 
-class MemberEntity: NSManagedObject {
+class MemberEntity: NSManagedObject, Identifiable {
     @NSManaged var id: UUID
     @NSManaged var householdID: UUID
     @NSManaged var name: String
@@ -159,4 +159,3 @@ final class PersistenceController {
         return description
     }
 }
-
