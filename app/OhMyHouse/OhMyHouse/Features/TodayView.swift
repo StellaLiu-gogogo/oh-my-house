@@ -157,7 +157,7 @@ struct TodayView: View {
 
     private func mealSummary(_ meal: MealPlanItem) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(meal.title)
+            TranslatedUserText(original: meal.title)
             Text(meal.slot == "lunch" ? store.text("午餐", "Lunch") : store.text("晚餐", "Dinner"))
                 .font(.caption)
                 .foregroundStyle(.secondary)

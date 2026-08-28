@@ -1,4 +1,59 @@
 import SwiftUI
+import Translation
+
+struct TranslatedUserText: View {
+    @EnvironmentObject private var store: LocalHouseholdDataStore
+    let original: String
+    @State private var translated: String?
+    @State private var configuration: TranslationSession.Configuration?
+
+    var body: some View {
+        Text(translated ?? original)
+            .translationTask(configuration) { session in
+                await translate(using: session)
+            }
+            .task(id: original + "|" + store.displayLanguage.rawValue) {
+                prepareTranslation()
+            }
+    }
+
+    private func prepareTranslation() {
+        translated = nil
+        let targetIsEnglish = store.displayLanguage == .english
+        guard needsTranslation(original, targetIsEnglish: targetIsEnglish) else {
+            configuration = nil
+            return
+        }
+
+        let source = Locale.Language(identifier: targetIsEnglish ? "zh-Hans" : "en")
+        let target = Locale.Language(identifier: targetIsEnglish ? "en" : "zh-Hans")
+        let newConfiguration = TranslationSession.Configuration(source: source, target: target)
+        if configuration == newConfiguration {
+            configuration?.invalidate()
+        } else {
+            configuration = newConfiguration
+        }
+    }
+
+    private func translate(using session: TranslationSession) async {
+        do {
+            try await session.prepareTranslation()
+            let result = try await session.translate(original).targetText
+            await MainActor.run { translated = result }
+        } catch {
+            await MainActor.run { translated = nil }
+        }
+    }
+
+    private func needsTranslation(_ text: String, targetIsEnglish: Bool) -> Bool {
+        if targetIsEnglish {
+            return text.unicodeScalars.contains {
+                (0x3400...0x9FFF).contains(Int($0.value))
+            }
+        }
+        return text.range(of: "[A-Za-z]", options: .regularExpression) != nil
+    }
+}
 
 struct AppScreenTools: ViewModifier {
     @EnvironmentObject private var store: LocalHouseholdDataStore

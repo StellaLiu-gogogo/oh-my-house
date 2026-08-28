@@ -27,7 +27,7 @@ struct RecipeLibraryView: View {
                     Button { editingRecipe = recipe } label: {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(recipe.title)
+                                TranslatedUserText(original: recipe.title)
                                 Text(store.text(
                                     "\(recipe.baseServings) 份 · \(recipe.ingredients.count) 种食材",
                                     "\(recipe.baseServings) servings · \(recipe.ingredients.count) ingredients"

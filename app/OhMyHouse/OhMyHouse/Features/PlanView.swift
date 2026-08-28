@@ -106,7 +106,7 @@ struct MealPlanView: View {
                                 HStack {
                                     Text(meal.slot == "lunch" ? store.text("午餐", "Lunch") : store.text("晚餐", "Dinner"))
                                         .foregroundStyle(.secondary)
-                                    Text(meal.title)
+                                    TranslatedUserText(original: meal.title)
                                     if meal.recipeID != nil {
                                         Image(systemName: "book.closed.fill")
                                             .font(.caption)
@@ -354,7 +354,7 @@ struct HouseholdCalendarView: View {
                     Text(store.text("尚未安排", "Not planned"))
                         .foregroundStyle(.secondary)
                 } else {
-                    ForEach(dinners) { Text($0.title) }
+                    ForEach(dinners) { TranslatedUserText(original: $0.title) }
                 }
             }
 
@@ -391,7 +391,9 @@ struct HouseholdCalendarView: View {
         let dayMaintenance = maintenance(on: selectedDate)
 
         if !meals.isEmpty {
-            Section(store.text("餐食", "Meals")) { ForEach(meals) { Text($0.title) } }
+            Section(store.text("餐食", "Meals")) {
+                ForEach(meals) { TranslatedUserText(original: $0.title) }
+            }
         }
         if !dayChores.isEmpty {
             Section(store.text("家务", "Chores")) { ForEach(dayChores) { ChoreRow(chore: $0) } }
@@ -476,7 +478,11 @@ struct AddMealView: View {
                             Button {
                                 selectRecipe(recipe)
                             } label: {
-                                Label(recipe.title, systemImage: "book.closed")
+                                Label {
+                                    TranslatedUserText(original: recipe.title)
+                                } icon: {
+                                    Image(systemName: "book.closed")
+                                }
                             }
                         }
                     }
@@ -484,7 +490,11 @@ struct AddMealView: View {
                 if let selectedRecipe {
                     Section(store.text("已选择食谱", "Selected Recipe")) {
                         HStack {
-                            Label(selectedRecipe.title, systemImage: "book.closed.fill")
+                            Label {
+                                TranslatedUserText(original: selectedRecipe.title)
+                            } icon: {
+                                Image(systemName: "book.closed.fill")
+                            }
                             Spacer()
                             Button(store.text("取消选择", "Remove")) {
                                 selectedRecipeID = nil
