@@ -1408,3 +1408,20 @@ Meal-related reminder 的具体使用场景和接收对象可以在以后有真�
 Synology NAS 方案已经讨论，但不作为第一阶段实时同步服务。项目继续使用原生 App + iCloud / CloudKit，
 避免同时维护原生 App、NAS 后端和家庭远程网络。NAS 以后可以作为数据导出或备份目的地，但不是当前
 household 数据库。
+
+## 19.22 分阶段开发：先完成本地主体，再接入 iCloud
+
+用户暂时不加入 Apple Developer Program。第一阶段本地保存与 Apple Translation 真机验证通过后，
+项目可以开始制作正式 App 主体，但这一阶段只承诺单台设备上的完整使用体验。
+
+本地主体包括已确认的 Today、Plan、Shopping、Home、Meals、Chores、Events、Members、
+Wishlist、Inventory 和 Maintenance 等页面与流程。数据继续使用 Core Data 保存在当前设备，
+中英文界面和用户内容翻译继续作为系统级能力实现。
+
+为了以后加入 CloudKit 时不重做所有页面，正式页面统一通过共享的数据管理层读写内容，
+而不是各页面自行决定保存方式。数据模型从一开始保留稳定 ID、household 归属、创建和修改时间、
+成员归属等同步所需基础信息，并遵守未来 CloudKit 接入需要的模型限制。
+
+当前阶段不制作假的云端状态，也不把尚未验证的同步、邀请或多人共享表现为可用功能。
+iCloud 入口暂时隐藏。加入 Apple Developer Program 后，仍必须完成多设备同步、不同 iCloud 用户共享、
+离线冲突、邀请和头像同步验证，验证通过后才能把这些能力视为可交付功能。

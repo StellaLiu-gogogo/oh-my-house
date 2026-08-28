@@ -94,12 +94,11 @@ Core Data 的代码会多一些，但 Apple 提供了完整的 Core Data + Cloud
 > Oh My House 最低支持 iOS 18、iPadOS 18 和 macOS 15。
 
 这组版本可以支持一次性 CloudKit 邀请、Core Data 多用户共享和 Apple Translation，
-同时支持当前这台运行 macOS 15.7.8 的 Mac。
+同时支持最低版本为 macOS 15 的 Mac。
 
 ### 当前设备情况
 
-当前用于项目的 Mac 是 M2 MacBook Air，目前运行 macOS 15.7.8，可以直接作为目标设备，
-不要求为了使用 Oh My House 升级到 macOS 26。
+当前用于项目的 Mac 是 M2 MacBook Air，目前运行 macOS 26.6.2，可以直接作为开发和目标设备。
 
 ## 6. 为什么选择系统 18 / 15
 
@@ -151,8 +150,9 @@ Core Data 的代码会多一些，但 Apple 提供了完整的 Core Data + Cloud
 
 用户已确认先做可行性验证。验证通过后，才制作正式 App 结构。
 
-当前设备尚未安装完整 Xcode。CloudKit 能力还需要可用的 Apple 开发者账号权限，
-因此验证将在这些前提准备完成后开始。
+完整 Xcode 已安装，本地保存与 Apple Translation 真机验证已经通过。
+用户决定暂不加入 Apple Developer Program，先开发本地优先的正式 App 主体，并通过统一数据管理入口
+为未来 CloudKit 接入保留位置。CloudKit、多用户共享和离线冲突验证延后，但不会被视为已经通过。
 
 ## 9. Apple 官方依据
 
