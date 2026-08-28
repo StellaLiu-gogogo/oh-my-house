@@ -229,6 +229,9 @@ struct HouseholdCalendarView: View {
             let meals = store.meals.filter { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }
             let chores = store.chores.filter { $0.dueDate.map { Calendar.current.isDate($0, inSameDayAs: selectedDate) } ?? false }
             let events = store.events.filter { Calendar.current.isDate($0.startDate, inSameDayAs: selectedDate) }
+            let maintenance = store.maintenanceItems.filter {
+                !$0.isCompleted && Calendar.current.isDate($0.nextDate, inSameDayAs: selectedDate)
+            }
 
             if !meals.isEmpty {
                 Section(store.text("餐食", "Meals")) { ForEach(meals) { Text($0.title) } }
@@ -238,6 +241,16 @@ struct HouseholdCalendarView: View {
             }
             if !events.isEmpty {
                 Section(store.text("家庭事件", "Events")) { ForEach(events) { Text($0.title) } }
+            }
+            if !maintenance.isEmpty {
+                Section(store.text("家庭维护", "Home Maintenance")) {
+                    ForEach(maintenance) { item in
+                        Button { store.completeMaintenance(item) } label: {
+                            Label(item.title, systemImage: "circle")
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
             }
         }
         .navigationTitle(store.text("日历", "Calendar"))

@@ -4,15 +4,34 @@ struct ShoppingView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @State private var showsMemberSheet = false
     @State private var showsAddItem = false
+    @State private var filter = ShoppingFilter.all
 
     var body: some View {
         NavigationStack {
             List {
-                shoppingSection(.meals, store.text("餐食 / 食材", "Meals / Grocery"))
-                shoppingSection(.supplies, store.text("家庭用品", "Household Supplies"))
-                shoppingSection(.maintenance, store.text("维护用品", "Maintenance Items"))
+                Section {
+                    Picker(store.text("查看", "Show"), selection: $filter) {
+                        Text(store.text("全部", "All")).tag(ShoppingFilter.all)
+                        Text(store.text("食材", "Grocery")).tag(ShoppingFilter.meals)
+                        Text(store.text("用品", "Supplies")).tag(ShoppingFilter.supplies)
+                        Text(store.text("维护", "Maintenance")).tag(ShoppingFilter.maintenance)
+                    }
+                    .pickerStyle(.segmented)
+                }
 
-                let purchased = store.shoppingItems.filter(\.isPurchased)
+                if filter == .all || filter == .meals {
+                    shoppingSection(.meals, store.text("餐食 / 食材", "Meals / Grocery"))
+                }
+                if filter == .all || filter == .supplies {
+                    shoppingSection(.supplies, store.text("家庭用品", "Household Supplies"))
+                }
+                if filter == .all || filter == .maintenance {
+                    shoppingSection(.maintenance, store.text("维护用品", "Maintenance Items"))
+                }
+
+                let purchased = store.shoppingItems.filter {
+                    $0.isPurchased && (filter == .all || $0.sourceKind == filter.rawValue)
+                }
                 if !purchased.isEmpty {
                     Section(store.text("已购买", "Purchased")) {
                         ForEach(purchased) { item in
@@ -69,11 +88,20 @@ struct ShoppingView: View {
     }
 }
 
+private enum ShoppingFilter: String, Identifiable {
+    case all
+    case meals
+    case supplies
+    case maintenance
+
+    var id: Self { self }
+}
+
 private struct AddShoppingItemView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @Environment(\.dismiss) private var dismiss
     @State private var title = ""
-    @State private var source = ShoppingSource.supplies
+    @State private var source = ShoppingSource.meals
 
     var body: some View {
         NavigationStack {
@@ -89,6 +117,12 @@ private struct AddShoppingItemView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(store.text("取消", "Cancel")) { dismiss() }
+                }
+                ToolbarItem(placement: .automatic) {
+                    Button(store.displayLanguage == .chinese ? "文" : "A") {
+                        store.toggleDisplayLanguage()
+                    }
+                    .accessibilityLabel(store.text("切换为英文", "Switch to Chinese"))
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(store.text("添加", "Add")) {

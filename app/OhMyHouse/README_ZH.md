@@ -10,9 +10,11 @@
 - Today、Plan、Shopping、Home 四个固定主 Tab；
 - Today 按 Meals、Chores、Home、Events 分区，不使用时间轴；
 - Plan 的 Meals、Chores、Events 与 Calendar 入口；
-- Shopping 统一清单的三个来源分区；
+- Shopping 统一清单的三个来源分区和临时筛选；
 - Shopping Item 本地新增、购买和撤销；
-- Home 的 Wishlist → Inventory → Maintenance 入口；
+- Wishlist 标记已购买后，由用户决定是否加入 Inventory；
+- Maintenance 可关联 Inventory、安排下次日期，并把所需用品加入 Shopping；
+- 到期 Maintenance 进入 Today，未来维护日期进入 Calendar；
 - 每个主页面的“文/A”语言按钮和成员头像入口；
 - 可建立多个本地家庭成员，并按名字、颜色区分；
 - 点击右上角头像切换当前使用者；
@@ -26,8 +28,7 @@
 - Core Data 本地数据库；
 - iCloud、邀请和多人共享入口保持隐藏。
 
-当前 Meals、Chores、Events、Wishlist、Inventory、Maintenance 和完整 Members 页面仍在开发中，
-界面中会明确显示尚未完成，不把占位页面当成可用功能。
+当前仍在继续完善编辑、删除、重复计划、系统通知、用户内容翻译以及更完整的异常处理。
 
 ## 打开项目
 

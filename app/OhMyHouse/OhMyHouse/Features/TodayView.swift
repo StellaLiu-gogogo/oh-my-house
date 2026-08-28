@@ -5,6 +5,7 @@ struct TodayView: View {
     @State private var showsMemberSheet = false
     @State private var showsAddMeal = false
     @State private var recentlyCompletedChore: ChoreItem?
+    @State private var recentlyCompletedMaintenance: MaintenanceItem?
 
     private var todayMeals: [MealPlanItem] {
         store.meals.filter { Calendar.current.isDateInToday($0.date) }
@@ -24,6 +25,12 @@ struct TodayView: View {
             Calendar.current.isDateInToday($0.startDate) ||
             ($0.reminderDate.map(Calendar.current.isDateInToday) ?? false)
         }
+    }
+
+    private var todayMaintenance: [MaintenanceItem] {
+        let start = Calendar.current.startOfDay(for: Date())
+        let end = Calendar.current.date(byAdding: .day, value: 1, to: start)!
+        return store.maintenanceItems.filter { !$0.isCompleted && $0.nextDate < end }
     }
 
     var body: some View {
@@ -65,6 +72,20 @@ struct TodayView: View {
                     }
                 }
 
+                if !todayMaintenance.isEmpty {
+                    Section(store.text("家庭维护", "Home Maintenance")) {
+                        ForEach(todayMaintenance.prefix(3)) { item in
+                            Button {
+                                recentlyCompletedMaintenance = item
+                                store.completeMaintenance(item)
+                            } label: {
+                                Label(item.title, systemImage: "circle")
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+
                 if !todayEvents.isEmpty {
                     Section(store.text("家庭事件", "Events")) {
                         ForEach(todayEvents.prefix(3)) { event in
@@ -89,6 +110,20 @@ struct TodayView: View {
                             Button(store.text("撤销", "Undo")) {
                                 store.toggleChore(recentlyCompletedChore)
                                 self.recentlyCompletedChore = nil
+                            }
+                        }
+                    }
+                }
+
+                if let recentlyCompletedMaintenance {
+                    Section {
+                        HStack {
+                            Text(store.text("已完成：", "Completed: ") + recentlyCompletedMaintenance.title)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Button(store.text("撤销", "Undo")) {
+                                store.restoreMaintenance(recentlyCompletedMaintenance)
+                                self.recentlyCompletedMaintenance = nil
                             }
                         }
                     }

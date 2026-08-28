@@ -50,3 +50,28 @@ enum SimpleRecurrence: String, CaseIterable, Identifiable {
 
     var id: Self { self }
 }
+
+struct WishlistItem: Codable, Identifiable {
+    let id: UUID
+    var title: String
+    var status: String
+    var inventoryItemID: UUID?
+}
+
+struct InventoryItem: Codable, Identifiable {
+    let id: UUID
+    var title: String
+    var room: String?
+    var sourceWishlistID: UUID?
+}
+
+struct MaintenanceItem: Codable, Identifiable {
+    let id: UUID
+    var title: String
+    var nextDate: Date
+    var inventoryItemID: UUID?
+    var recurrence: String
+    var assigneeIDs: [UUID]
+    var completionHistory: [Date]
+    var isCompleted: Bool
+}

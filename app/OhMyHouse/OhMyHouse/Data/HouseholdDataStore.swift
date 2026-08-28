@@ -17,7 +17,7 @@ enum ShoppingSource: String, CaseIterable, Identifiable {
 @MainActor
 protocol HouseholdDataStore: AnyObject {
     var activeHouseholdID: UUID { get }
-    func addShoppingItem(title: String, source: ShoppingSource)
+    func addShoppingItem(title: String, source: ShoppingSource, sourceID: UUID?)
     func togglePurchased(_ item: ShoppingItemEntity)
 }
 
@@ -31,6 +31,9 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
     @Published private(set) var meals: [MealPlanItem] = []
     @Published private(set) var chores: [ChoreItem] = []
     @Published private(set) var events: [HouseholdEventItem] = []
+    @Published private(set) var wishlistItems: [WishlistItem] = []
+    @Published private(set) var inventoryItems: [InventoryItem] = []
+    @Published private(set) var maintenanceItems: [MaintenanceItem] = []
 
     let activeHouseholdID: UUID
     private let context: NSManagedObjectContext
@@ -128,7 +131,7 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         reloadMembers()
     }
 
-    func addShoppingItem(title: String, source: ShoppingSource) {
+    func addShoppingItem(title: String, source: ShoppingSource, sourceID: UUID? = nil) {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
@@ -137,6 +140,7 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         item.householdID = activeHouseholdID
         item.title = trimmed
         item.sourceKind = source.rawValue
+        item.sourceID = sourceID
         item.isPurchased = false
         item.createdAt = Date()
         item.updatedAt = Date()
@@ -209,6 +213,75 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         savePlanningItem(item, title: trimmed, entityName: "HouseholdEventEntity")
     }
 
+    func addWishlistItem(title: String) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let item = WishlistItem(id: UUID(), title: trimmed, status: "idea", inventoryItemID: nil)
+        savePlanningItem(item, title: trimmed, entityName: "WishlistItemEntity")
+    }
+
+    func markWishlistPurchased(_ item: WishlistItem, addToInventory: Bool) {
+        var changed = item
+        changed.status = "purchased"
+        if addToInventory {
+            let inventory = InventoryItem(
+                id: UUID(), title: item.title, room: nil, sourceWishlistID: item.id
+            )
+            changed.inventoryItemID = inventory.id
+            savePlanningItem(inventory, title: inventory.title, entityName: "InventoryItemEntity")
+        }
+        updatePlanningItem(changed, title: changed.title, entityName: "WishlistItemEntity")
+    }
+
+    func addInventoryItem(title: String, room: String?) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let item = InventoryItem(
+            id: UUID(), title: trimmed,
+            room: room?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
+            sourceWishlistID: nil
+        )
+        savePlanningItem(item, title: trimmed, entityName: "InventoryItemEntity")
+    }
+
+    func addMaintenance(
+        title: String,
+        nextDate: Date,
+        inventoryItemID: UUID?,
+        recurrence: SimpleRecurrence,
+        assigneeIDs: [UUID],
+        requiredItem: String?
+    ) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let item = MaintenanceItem(
+            id: UUID(), title: trimmed, nextDate: nextDate,
+            inventoryItemID: inventoryItemID, recurrence: recurrence.rawValue,
+            assigneeIDs: assigneeIDs, completionHistory: [], isCompleted: false
+        )
+        savePlanningItem(item, title: trimmed, entityName: "MaintenanceEntity")
+        if let requiredItem = requiredItem?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !requiredItem.isEmpty {
+            addShoppingItem(title: requiredItem, source: .maintenance, sourceID: item.id)
+        }
+    }
+
+    func completeMaintenance(_ item: MaintenanceItem) {
+        var changed = item
+        changed.completionHistory.append(Date())
+        let recurrence = SimpleRecurrence(rawValue: changed.recurrence) ?? .none
+        if recurrence == .none {
+            changed.isCompleted = true
+        } else if let next = nextDate(after: changed.nextDate, recurrence: recurrence) {
+            changed.nextDate = next
+        }
+        updatePlanningItem(changed, title: changed.title, entityName: "MaintenanceEntity")
+    }
+
+    func restoreMaintenance(_ item: MaintenanceItem) {
+        updatePlanningItem(item, title: item.title, entityName: "MaintenanceEntity")
+    }
+
     func items(for source: ShoppingSource, purchased: Bool = false) -> [ShoppingItemEntity] {
         shoppingItems.filter { $0.sourceKind == source.rawValue && $0.isPurchased == purchased }
     }
@@ -252,6 +325,10 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
             .sorted { ($0.dueDate ?? .distantFuture) < ($1.dueDate ?? .distantFuture) }
         events = fetchPlanningItems(entityName: "HouseholdEventEntity", as: HouseholdEventItem.self)
             .sorted { $0.startDate < $1.startDate }
+        wishlistItems = fetchPlanningItems(entityName: "WishlistItemEntity", as: WishlistItem.self)
+        inventoryItems = fetchPlanningItems(entityName: "InventoryItemEntity", as: InventoryItem.self)
+        maintenanceItems = fetchPlanningItems(entityName: "MaintenanceEntity", as: MaintenanceItem.self)
+            .sorted { $0.nextDate < $1.nextDate }
     }
 
     private func fetchPlanningItems<Value: Decodable>(
@@ -311,4 +388,20 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
             context.rollback()
         }
     }
+
+    private func nextDate(after date: Date, recurrence: SimpleRecurrence) -> Date? {
+        let calendar = Calendar.current
+        return switch recurrence {
+        case .none: nil
+        case .daily: calendar.date(byAdding: .day, value: 1, to: date)
+        case .weekly: calendar.date(byAdding: .weekOfYear, value: 1, to: date)
+        case .biweekly: calendar.date(byAdding: .weekOfYear, value: 2, to: date)
+        case .monthly: calendar.date(byAdding: .month, value: 1, to: date)
+        case .yearly: calendar.date(byAdding: .year, value: 1, to: date)
+        }
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? { isEmpty ? nil : self }
 }
