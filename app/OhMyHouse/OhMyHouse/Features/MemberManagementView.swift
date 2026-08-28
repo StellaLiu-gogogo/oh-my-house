@@ -58,30 +58,30 @@ private struct MemberRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Button {
-                store.selectMember(member)
-            } label: {
-                HStack(spacing: 12) {
-                    MemberAvatarView(member: member, size: 44)
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(member.name)
-                        if store.currentMemberID == member.id {
-                            Text(store.text("当前使用者", "Current user"))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    Spacer()
+            HStack(spacing: 12) {
+                MemberAvatarView(member: member, size: 44)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(member.name)
                     if store.currentMemberID == member.id {
-                        Image(systemName: "checkmark")
+                        Text(store.text("当前使用者", "Current user"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
+                Spacer()
+                if store.currentMemberID == member.id {
+                    Image(systemName: "checkmark")
+                }
             }
-            .buttonStyle(.plain)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                store.selectMember(member)
+            }
 
             PhotosPicker(selection: $selectedPhoto, matching: .images) {
                 Image(systemName: "photo")
             }
+            .buttonStyle(.borderless)
             .accessibilityLabel(store.text("从相册选择头像", "Choose photo from library"))
 
             Button {
@@ -89,7 +89,7 @@ private struct MemberRow: View {
             } label: {
                 Image(systemName: "pencil")
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
             .accessibilityLabel(store.text("编辑成员", "Edit member"))
         }
         .task(id: selectedPhoto) {
