@@ -127,6 +127,10 @@ struct RecipeFormView: View {
                                     .keyboardType(.decimalPad)
 #endif
                                 TextField(store.text("单位", "Unit"), text: $ingredient.unit)
+#if os(iOS)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+#endif
                             }
                         }
                     }
