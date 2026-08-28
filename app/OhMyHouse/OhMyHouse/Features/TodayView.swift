@@ -55,6 +55,11 @@ struct TodayView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
+                        Button {
+                            showsAddMeal = true
+                        } label: {
+                            Label(store.text("再添加一餐", "Add another meal"), systemImage: "plus.circle")
+                        }
                     }
                 }
 
