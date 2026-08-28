@@ -113,7 +113,9 @@ struct TodayView: View {
                                 .foregroundStyle(.secondary)
                             Spacer()
                             Button(store.text("撤销", "Undo")) {
-                                store.toggleChore(recentlyCompletedChore)
+                                if let completedChore = store.chores.first(where: { $0.id == recentlyCompletedChore.id }) {
+                                    store.toggleChore(completedChore)
+                                }
                                 self.recentlyCompletedChore = nil
                             }
                         }
