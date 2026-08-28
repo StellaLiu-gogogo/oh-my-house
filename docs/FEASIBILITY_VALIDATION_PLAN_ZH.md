@@ -2,7 +2,7 @@
 
 - **日期：** 2026-08-27
 - **阶段：** 技术可行性验证准备
-- **状态：** 范围已确认；等待安装 Xcode，Apple Developer Program 尚未加入
+- **状态：** Xcode、本机开发组件与 iOS 模拟器已就绪；Apple Developer Program 尚未加入
 - **目标：** 在正式 App 开发前验证最难、风险最高的 Apple 技术能力
 
 ## 1. 这不是正式 App
@@ -28,10 +28,11 @@
 
 ### 3.1 完整 Xcode
 
-当前 Mac 只有 Command Line Tools，没有完整 Xcode，因此不能创建、签名或运行 Apple App。
+用户已通过 Apple 官方渠道安装 Xcode 26.6，并完成首次启动所需开发组件的安装。
+当前 Mac 运行 macOS 26.6.2，已确认 Xcode 可以正常打开。
 
-当前 macOS 15.7.8 满足 Xcode 26 对 macOS 15.6 或更高版本的要求，不需要升级到 macOS 26。
-Xcode 需要由用户通过 Apple 官方渠道安装。
+iOS 26.5 模拟器已安装，可用于 iPhone 和 iPad 的早期测试；macOS 26.5 SDK 也已就绪。
+正式的多人 iCloud 共享仍需要在实际设备上验证，不能只依赖模拟器。
 
 ### 3.2 Apple 开发者账号
 
@@ -147,12 +148,13 @@ Apple Developer Program 当前公开价格为每年 99 美元，具体以注册�
 
 ## 7. 当前下一步
 
-1. 用户安装完整 Xcode；
+1. 建立不属于正式 App 的最小测试程序；
 2. 免费验证本地保存和 Apple Translation；
-3. 用户在开始 CloudKit 验证前加入 Apple Developer Program；
-4. 再验证 iCloud 与多人共享。
+3. 记录测试结果，由用户确认是否继续；
+4. 用户在开始 CloudKit 验证前加入 Apple Developer Program；
+5. 再验证 iCloud 与多人共享。
 
-在 Xcode 安装完成前，不创建无法运行和验证的项目代码。
+当前只允许建立范围受控的测试程序，不提前搭建正式 App 的完整页面和结构。
 
 ## 8. Apple 官方资料
 
