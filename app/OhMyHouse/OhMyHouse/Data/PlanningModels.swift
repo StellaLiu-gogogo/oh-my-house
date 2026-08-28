@@ -23,6 +23,13 @@ struct RecipeItem: Codable, Identifiable {
     var baseServings: Int
     var ingredients: [RecipeIngredient]
     var instructions: String
+    var photoData: Data? = nil
+    var steps: [RecipeStep]? = nil
+}
+
+struct RecipeStep: Codable, Identifiable {
+    let id: UUID
+    var text: String
 }
 
 struct ChoreItem: Codable, Identifiable {

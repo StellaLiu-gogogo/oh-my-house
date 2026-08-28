@@ -218,14 +218,18 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         title: String,
         baseServings: Int,
         ingredients: [RecipeIngredient],
-        instructions: String
+        instructions: String,
+        photoData: Data?,
+        steps: [RecipeStep]
     ) {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         let recipe = RecipeItem(
             id: UUID(), title: trimmed, baseServings: max(baseServings, 1),
             ingredients: ingredients.filter { !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty },
-            instructions: instructions.trimmingCharacters(in: .whitespacesAndNewlines)
+            instructions: instructions.trimmingCharacters(in: .whitespacesAndNewlines),
+            photoData: photoData,
+            steps: steps.filter { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         )
         savePlanningItem(recipe, title: trimmed, entityName: "RecipeEntity")
     }
@@ -235,7 +239,9 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         title: String,
         baseServings: Int,
         ingredients: [RecipeIngredient],
-        instructions: String
+        instructions: String,
+        photoData: Data?,
+        steps: [RecipeStep]
     ) {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
@@ -244,6 +250,8 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         changed.baseServings = max(baseServings, 1)
         changed.ingredients = ingredients.filter { !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         changed.instructions = instructions.trimmingCharacters(in: .whitespacesAndNewlines)
+        changed.photoData = photoData
+        changed.steps = steps.filter { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         updatePlanningItem(changed, title: trimmed, entityName: "RecipeEntity")
     }
 

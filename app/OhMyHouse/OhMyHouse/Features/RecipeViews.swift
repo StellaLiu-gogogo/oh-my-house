@@ -1,4 +1,11 @@
+import PhotosUI
 import SwiftUI
+
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 struct RecipeLibraryView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
@@ -87,6 +94,25 @@ private struct IngredientDraft: Identifiable {
     }
 }
 
+private struct StepDraft: Identifiable {
+    let id: UUID
+    var text: String
+
+    init(id: UUID = UUID(), text: String = "") {
+        self.id = id
+        self.text = text
+    }
+
+    init(_ step: RecipeStep) {
+        id = step.id
+        text = step.text
+    }
+
+    var value: RecipeStep {
+        RecipeStep(id: id, text: text.trimmingCharacters(in: .whitespacesAndNewlines))
+    }
+}
+
 struct RecipeFormView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @Environment(\.dismiss) private var dismiss
@@ -94,7 +120,9 @@ struct RecipeFormView: View {
     @State private var title: String
     @State private var baseServings: Int
     @State private var ingredients: [IngredientDraft]
-    @State private var instructions: String
+    @State private var steps: [StepDraft]
+    @State private var photoData: Data?
+    @State private var selectedPhoto: PhotosPickerItem?
 
     init(recipe: RecipeItem? = nil) {
         self.recipe = recipe
@@ -102,7 +130,13 @@ struct RecipeFormView: View {
         _baseServings = State(initialValue: recipe?.baseServings ?? 2)
         let existing = recipe?.ingredients.map(IngredientDraft.init) ?? []
         _ingredients = State(initialValue: existing.isEmpty ? [IngredientDraft()] : existing)
-        _instructions = State(initialValue: recipe?.instructions ?? "")
+        let existingSteps = recipe?.steps?.map(StepDraft.init) ?? []
+        let legacySteps = (recipe?.instructions ?? "")
+            .split(separator: "\n")
+            .map { StepDraft(text: String($0)) }
+        let initialSteps = existingSteps.isEmpty ? legacySteps : existingSteps
+        _steps = State(initialValue: initialSteps.isEmpty ? [StepDraft()] : initialSteps)
+        _photoData = State(initialValue: recipe?.photoData)
     }
 
     var body: some View {
@@ -115,6 +149,27 @@ struct RecipeFormView: View {
                         value: $baseServings,
                         in: 1...30
                     )
+                }
+
+                Section(store.text("照片（可选）", "Photo (optional)")) {
+                    let photoButtonTitle = photoData == nil
+                        ? store.text("从相册添加照片", "Add Photo from Library")
+                        : store.text("更换照片", "Change Photo")
+                    if photoData != nil {
+                        RecipePhotoView(data: photoData)
+                            .frame(height: 180)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                        Button(store.text("移除照片", "Remove Photo"), role: .destructive) {
+                            photoData = nil
+                            selectedPhoto = nil
+                        }
+                    }
+                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                        Label(
+                            photoButtonTitle,
+                            systemImage: "photo"
+                        )
+                    }
                 }
 
                 Section(store.text("食材", "Ingredients")) {
@@ -143,9 +198,28 @@ struct RecipeFormView: View {
                     }
                 }
 
-                Section(store.text("做法（可选）", "Instructions (optional)")) {
-                    TextEditor(text: $instructions)
-                        .frame(minHeight: 120)
+                Section(store.text("做法（分步）", "Instructions (Steps)")) {
+                    ForEach(Array(steps.indices), id: \.self) { index in
+                        HStack(alignment: .top, spacing: 10) {
+                            Text("\(index + 1)")
+                                .font(.headline)
+                                .frame(width: 24, height: 28)
+                                .background(.secondary.opacity(0.15), in: Circle())
+                            TextField(
+                                store.text("输入这一步", "Describe this step"),
+                                text: $steps[index].text,
+                                axis: .vertical
+                            )
+                            .lineLimit(1...5)
+                        }
+                    }
+                    .onDelete { steps.remove(atOffsets: $0) }
+
+                    Button {
+                        steps.append(StepDraft())
+                    } label: {
+                        Label(store.text("添加步骤", "Add Step"), systemImage: "plus.circle")
+                    }
                 }
             }
             .navigationTitle(recipe == nil ? store.text("添加食谱", "Add Recipe") : store.text("编辑食谱", "Edit Recipe"))
@@ -161,12 +235,18 @@ struct RecipeFormView: View {
                         if let recipe {
                             store.updateRecipe(
                                 recipe, title: title, baseServings: baseServings,
-                                ingredients: ingredients.map(\.value), instructions: instructions
+                                ingredients: ingredients.map(\.value),
+                                instructions: steps.map(\.text).joined(separator: "\n"),
+                                photoData: photoData,
+                                steps: steps.map(\.value)
                             )
                         } else {
                             store.addRecipe(
                                 title: title, baseServings: baseServings,
-                                ingredients: ingredients.map(\.value), instructions: instructions
+                                ingredients: ingredients.map(\.value),
+                                instructions: steps.map(\.text).joined(separator: "\n"),
+                                photoData: photoData,
+                                steps: steps.map(\.value)
                             )
                         }
                         dismiss()
@@ -174,6 +254,96 @@ struct RecipeFormView: View {
                     .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
+            .task(id: selectedPhoto) {
+                guard let selectedPhoto,
+                      let data = try? await selectedPhoto.loadTransferable(type: Data.self) else { return }
+                photoData = data
+            }
         }
+    }
+}
+
+struct RecipeCookingView: View {
+    @EnvironmentObject private var store: LocalHouseholdDataStore
+    @Environment(\.dismiss) private var dismiss
+    let recipe: RecipeItem
+
+    private var cookingSteps: [RecipeStep] {
+        if let steps = recipe.steps, !steps.isEmpty { return steps }
+        return recipe.instructions.split(separator: "\n").map {
+            RecipeStep(id: UUID(), text: String($0))
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if recipe.photoData != nil {
+                    RecipePhotoView(data: recipe.photoData)
+                        .frame(height: 220)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .listRowInsets(EdgeInsets())
+                }
+                if !recipe.ingredients.isEmpty {
+                    Section(store.text("食材", "Ingredients")) {
+                        ForEach(recipe.ingredients) { ingredient in
+                            Text([ingredient.quantity?.formatted(.number.precision(.fractionLength(0...2))) ?? "", ingredient.unit, ingredient.name]
+                                .filter { !$0.isEmpty }.joined(separator: " "))
+                        }
+                    }
+                }
+                Section(store.text("烹饪步骤", "Cooking Steps")) {
+                    if cookingSteps.isEmpty {
+                        Text(store.text("这份食谱还没有填写步骤", "No cooking steps yet"))
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(Array(cookingSteps.enumerated()), id: \.element.id) { index, step in
+                            HStack(alignment: .top, spacing: 12) {
+                                Text("\(index + 1)")
+                                    .font(.headline)
+                                    .frame(width: 30, height: 30)
+                                    .background(.blue.opacity(0.15), in: Circle())
+                                Text(step.text)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                }
+            }
+            .navigationTitle(recipe.title)
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    Button(store.displayLanguage == .chinese ? "文" : "A") { store.toggleDisplayLanguage() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(store.text("完成", "Done")) { dismiss() }
+                }
+            }
+        }
+    }
+}
+
+struct RecipePhotoView: View {
+    let data: Data?
+
+    var body: some View {
+        Group {
+            if let data, let image = platformImage(data: data) {
+                image.resizable().scaledToFill()
+            } else {
+                Rectangle().fill(.secondary.opacity(0.12))
+                    .overlay { Image(systemName: "photo").foregroundStyle(.secondary) }
+            }
+        }
+    }
+
+    private func platformImage(data: Data) -> Image? {
+#if os(macOS)
+        guard let image = NSImage(data: data) else { return nil }
+        return Image(nsImage: image)
+#else
+        guard let image = UIImage(data: data) else { return nil }
+        return Image(uiImage: image)
+#endif
     }
 }

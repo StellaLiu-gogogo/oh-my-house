@@ -6,6 +6,7 @@ struct TodayView: View {
     @State private var showsAddMeal = false
     @State private var recentlyCompletedChore: ChoreItem?
     @State private var recentlyCompletedMaintenance: MaintenanceItem?
+    @State private var selectedRecipe: RecipeItem?
 
     private var todayMeals: [MealPlanItem] {
         store.meals.filter { Calendar.current.isDateInToday($0.date) }
@@ -48,11 +49,18 @@ struct TodayView: View {
                         }
                     } else {
                         ForEach(todayMeals.prefix(3)) { meal in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(meal.title)
-                                Text(meal.slot == "lunch" ? store.text("午餐", "Lunch") : store.text("晚餐", "Dinner"))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                            if let recipe = store.recipes.first(where: { $0.id == meal.recipeID }) {
+                                Button { selectedRecipe = recipe } label: {
+                                    HStack {
+                                        mealSummary(meal)
+                                        Spacer()
+                                        Image(systemName: "book.closed")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                            } else {
+                                mealSummary(meal)
                             }
                         }
                         Button {
@@ -141,6 +149,18 @@ struct TodayView: View {
             .sheet(isPresented: $showsAddMeal) {
                 AddMealView(defaultDate: Date())
             }
+            .sheet(item: $selectedRecipe) {
+                RecipeCookingView(recipe: $0)
+            }
+        }
+    }
+
+    private func mealSummary(_ meal: MealPlanItem) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(meal.title)
+            Text(meal.slot == "lunch" ? store.text("午餐", "Lunch") : store.text("晚餐", "Dinner"))
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 }
