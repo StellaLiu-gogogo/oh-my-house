@@ -1404,3 +1404,7 @@ Meal-related reminder 的具体使用场景和接收对象可以在以后有真�
 
 开始验证需要完整 Xcode，以及能够为 App 启用 CloudKit 的 Apple 开发者账号。购买或注册开发者计划
 不由项目自动执行，必须由用户自行决定。
+
+Synology NAS 方案已经讨论，但不作为第一阶段实时同步服务。项目继续使用原生 App + iCloud / CloudKit，
+避免同时维护原生 App、NAS 后端和家庭远程网络。NAS 以后可以作为数据导出或备份目的地，但不是当前
+household 数据库。

@@ -38,7 +38,7 @@ Oh My House 的每条 Chore、Meal 和 Shopping Item，都需要同时存在两�
 
 - 已连接的真实使用者必须有可用的 iCloud 账号；
 - 创建 household 的人在 iCloud 底层仍是数据所有者；
-- App 可以让其他连接用户具有邀请、移除参与者和编辑数据的能力，但最底层仍存在一个创建者；
+- 只有创建 household 的 iCloud 所有者管理邀请和停止访问，其他成员共同编辑日常家庭内容；
 - 一次性链接可以直接使用 Apple 的能力，二维码可以表示同一条链接；
 - 24 小时失效和短代码需要 App 在 iCloud 中加一层简单验证，不是 Apple 现成界面自动完成的；
 - 共享和一次性邀请的较新能力可能影响 App 最低支持的系统版本，需要在正式开发前用小型测试验证。
@@ -87,7 +87,7 @@ Oh My House 的每条 Chore、Meal 和 Shopping Item，都需要同时存在两�
 SwiftUI 是 Apple 用来构建 App 页面的工具。它能让 iPhone、iPad 和 Mac 共用大部分页面逻辑，
 同时允许每种设备保留适合自己的布局。
 
-这一项推荐很明确，但仍然等待和整体架构一起确认。
+这一项已经与整体架构一起确认。
 
 ### 6.2 设备里的数据库：优先考虑 Core Data
 
@@ -156,3 +156,13 @@ CloudKit 是 Apple 为 App 提供的 iCloud 数据服务。它负责在不同设
 - [CloudKit 一次性邀请参与者](https://developer.apple.com/documentation/cloudkit/ckshare/participant/onetimeurlparticipant%28%29)
 - [CloudKit 共享管理员](https://developer.apple.com/documentation/cloudkit/ckshare/participantrole/administrator)
 - [Apple Translation](https://developer.apple.com/documentation/translation)
+
+## 10. Synology NAS 方案的结论
+
+2026-08-28 讨论了使用家庭 Synology NAS 替代 CloudKit 的可能性。
+
+技术上可以让 NAS 保存中央数据库，但原生 App 仍然需要处理自己的账号、远程连接、离线合并、
+冲突、安全和备份；iPhone 上长期稳定安装原生 App 的 Apple 签名要求也不会因此消失。
+
+用户最终确认继续采用原生 App + iCloud / CloudKit，不使用 NAS 进行第一阶段实时同步。
+NAS 以后只作为可选的数据导出或备份位置。

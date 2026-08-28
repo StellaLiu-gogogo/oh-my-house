@@ -2,7 +2,7 @@
 
 - **日期：** 2026-08-27
 - **阶段：** 技术可行性验证准备
-- **状态：** 范围已确认；等待 Xcode 和 Apple 开发者账号
+- **状态：** 范围已确认；等待安装 Xcode，Apple Developer Program 尚未加入
 - **目标：** 在正式 App 开发前验证最难、风险最高的 Apple 技术能力
 
 ## 1. 这不是正式 App
@@ -39,7 +39,8 @@ CloudKit 需要为 App 建立专用的 iCloud container，也就是只属于 Oh 
 Apple 官方文档说明，启用这项能力需要有效的 Apple 开发者账号和相应权限。
 
 Apple Developer Program 当前公开价格为每年 99 美元，具体以注册时显示的当地货币价格为准。
-用户需要先确认自己是否已经加入；项目不会自行购买或注册。
+用户目前尚未加入。可以先免费准备 Xcode 和本地验证，但在测试 CloudKit 前必须由用户自行决定并完成加入；
+项目不会自行购买或注册。
 
 ### 3.3 两个 iCloud 使用者
 
@@ -147,11 +148,11 @@ Apple Developer Program 当前公开价格为每年 99 美元，具体以注册�
 ## 7. 当前下一步
 
 1. 用户安装完整 Xcode；
-2. 用户确认是否已经加入 Apple Developer Program；
-3. 环境准备完成后，创建最小验证项目；
-4. 先验证本地保存，再依次验证 iCloud 与多人共享。
+2. 免费验证本地保存和 Apple Translation；
+3. 用户在开始 CloudKit 验证前加入 Apple Developer Program；
+4. 再验证 iCloud 与多人共享。
 
-在前两项完成前，不创建无法运行和验证的项目代码。
+在 Xcode 安装完成前，不创建无法运行和验证的项目代码。
 
 ## 8. Apple 官方资料
 
