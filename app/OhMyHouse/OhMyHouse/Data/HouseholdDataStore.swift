@@ -28,6 +28,9 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
     @Published private(set) var currentMemberID: UUID?
     @Published private(set) var members: [MemberEntity] = []
     @Published private(set) var shoppingItems: [ShoppingItemEntity] = []
+    @Published private(set) var meals: [MealPlanItem] = []
+    @Published private(set) var chores: [ChoreItem] = []
+    @Published private(set) var events: [HouseholdEventItem] = []
 
     let activeHouseholdID: UUID
     private let context: NSManagedObjectContext
@@ -62,6 +65,7 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         loadCurrentMember()
         reloadMembers()
         reloadShoppingItems()
+        reloadPlanningItems()
     }
 
     func text(_ chinese: String, _ english: String) -> String {
@@ -134,6 +138,65 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         saveAndReload()
     }
 
+    func addMeal(
+        title: String,
+        date: Date,
+        slot: String,
+        participantIDs: [UUID],
+        servings: Int
+    ) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let item = MealPlanItem(
+            id: UUID(), title: trimmed, date: date, slot: slot,
+            participantIDs: participantIDs, servings: servings
+        )
+        savePlanningItem(item, title: trimmed, entityName: "MealEntity")
+    }
+
+    func addChore(
+        title: String,
+        dueDate: Date?,
+        assignmentMode: ChoreAssignmentMode,
+        assigneeIDs: [UUID],
+        recurrence: SimpleRecurrence
+    ) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let item = ChoreItem(
+            id: UUID(), title: trimmed, dueDate: dueDate,
+            assignmentMode: assignmentMode.rawValue, assigneeIDs: assigneeIDs,
+            recurrence: recurrence.rawValue, isCompleted: false, completedAt: nil
+        )
+        savePlanningItem(item, title: trimmed, entityName: "ChoreEntity")
+    }
+
+    func toggleChore(_ item: ChoreItem) {
+        var changed = item
+        changed.isCompleted.toggle()
+        changed.completedAt = changed.isCompleted ? Date() : nil
+        updatePlanningItem(changed, title: changed.title, entityName: "ChoreEntity")
+    }
+
+    func addEvent(
+        title: String,
+        startDate: Date,
+        endDate: Date?,
+        isAllDay: Bool,
+        recurrence: SimpleRecurrence,
+        reminderDate: Date?,
+        reminderText: String?
+    ) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let item = HouseholdEventItem(
+            id: UUID(), title: trimmed, startDate: startDate, endDate: endDate,
+            isAllDay: isAllDay, recurrence: recurrence.rawValue,
+            reminderDate: reminderDate, reminderText: reminderText
+        )
+        savePlanningItem(item, title: trimmed, entityName: "HouseholdEventEntity")
+    }
+
     func items(for source: ShoppingSource, purchased: Bool = false) -> [ShoppingItemEntity] {
         shoppingItems.filter { $0.sourceKind == source.rawValue && $0.isPurchased == purchased }
     }
@@ -168,6 +231,64 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         )
         request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
         shoppingItems = (try? context.fetch(request)) ?? []
+    }
+
+    private func reloadPlanningItems() {
+        meals = fetchPlanningItems(entityName: "MealEntity", as: MealPlanItem.self)
+            .sorted { $0.date < $1.date }
+        chores = fetchPlanningItems(entityName: "ChoreEntity", as: ChoreItem.self)
+            .sorted { ($0.dueDate ?? .distantFuture) < ($1.dueDate ?? .distantFuture) }
+        events = fetchPlanningItems(entityName: "HouseholdEventEntity", as: HouseholdEventItem.self)
+            .sorted { $0.startDate < $1.startDate }
+    }
+
+    private func fetchPlanningItems<Value: Decodable>(
+        entityName: String,
+        as type: Value.Type
+    ) -> [Value] {
+        let request = NSFetchRequest<NSManagedObject>(entityName: entityName)
+        request.predicate = NSPredicate(
+            format: "householdID == %@ AND deletedAt == nil",
+            activeHouseholdID as CVarArg
+        )
+        return ((try? context.fetch(request)) ?? []).compactMap { object in
+            guard let data = object.value(forKey: "payload") as? Data else { return nil }
+            return try? JSONDecoder().decode(type, from: data)
+        }
+    }
+
+    private func savePlanningItem<Value: Encodable & Identifiable>(
+        _ value: Value,
+        title: String,
+        entityName: String
+    ) where Value.ID == UUID {
+        guard let data = try? JSONEncoder().encode(value) else { return }
+        let object = NSEntityDescription.insertNewObject(forEntityName: entityName, into: context)
+        let now = Date()
+        object.setValue(value.id, forKey: "id")
+        object.setValue(activeHouseholdID, forKey: "householdID")
+        object.setValue(title, forKey: "title")
+        object.setValue(data, forKey: "payload")
+        object.setValue(now, forKey: "createdAt")
+        object.setValue(now, forKey: "updatedAt")
+        try? context.save()
+        reloadPlanningItems()
+    }
+
+    private func updatePlanningItem<Value: Encodable & Identifiable>(
+        _ value: Value,
+        title: String,
+        entityName: String
+    ) where Value.ID == UUID {
+        let request = NSFetchRequest<NSManagedObject>(entityName: entityName)
+        request.predicate = NSPredicate(format: "id == %@", value.id as CVarArg)
+        guard let object = try? context.fetch(request).first,
+              let data = try? JSONEncoder().encode(value) else { return }
+        object.setValue(title, forKey: "title")
+        object.setValue(data, forKey: "payload")
+        object.setValue(Date(), forKey: "updatedAt")
+        try? context.save()
+        reloadPlanningItems()
     }
 
     private func saveAndReload() {
