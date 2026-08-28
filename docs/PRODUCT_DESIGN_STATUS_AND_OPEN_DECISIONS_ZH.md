@@ -36,6 +36,7 @@ CloudKit、多人共享和离线冲突验证等待用户决定是否加入 Apple
 - Today 与 Calendar；
 - Household Members；
 - 中英文 UI 与共享内容翻译。
+- 每位成员可分别选择四种预设外观风格，以及跟随系统 / 浅色 / 深色模式。
 
 ### 已确认的重要连接
 
