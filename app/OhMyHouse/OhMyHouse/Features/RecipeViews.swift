@@ -272,6 +272,7 @@ struct RecipeCookingView: View {
     @State private var translatedTitle: String?
     @State private var translatedIngredientNames: [UUID: String] = [:]
     @State private var translatedSteps: [UUID: String] = [:]
+    @State private var translationStatusMessage: String?
 
     private var cookingSteps: [RecipeStep] {
         if let steps = recipe.steps, !steps.isEmpty { return steps }
@@ -283,6 +284,12 @@ struct RecipeCookingView: View {
     var body: some View {
         NavigationStack {
             List {
+                if let translationStatusMessage {
+                    Section {
+                        Label(translationStatusMessage, systemImage: "translate")
+                            .foregroundStyle(.secondary)
+                    }
+                }
                 if recipe.photoData != nil {
                     RecipePhotoView(data: recipe.photoData)
                         .frame(height: 220)
@@ -341,10 +348,30 @@ struct RecipeCookingView: View {
         translatedIngredientNames = [:]
         translatedSteps = [:]
 
-        let target = store.displayLanguage == .english
+        let translatingToEnglish = store.displayLanguage == .english
+        let hasContentToTranslate = [recipe.title]
+            .contains { needsTranslation($0, targetIsEnglish: translatingToEnglish) }
+            || recipe.ingredients.contains {
+                needsTranslation($0.name, targetIsEnglish: translatingToEnglish)
+            }
+            || cookingSteps.contains {
+                needsTranslation($0.text, targetIsEnglish: translatingToEnglish)
+            }
+
+        guard hasContentToTranslate else {
+            translationStatusMessage = nil
+            translationConfiguration = nil
+            return
+        }
+
+        translationStatusMessage = store.text("正在翻译用户内容…", "Translating your content…")
+        let source = translatingToEnglish
+            ? Locale.Language(identifier: "zh-Hans")
+            : Locale.Language(identifier: "en")
+        let target = translatingToEnglish
             ? Locale.Language(identifier: "en")
             : Locale.Language(identifier: "zh-Hans")
-        let configuration = TranslationSession.Configuration(source: nil, target: target)
+        let configuration = TranslationSession.Configuration(source: source, target: target)
         if translationConfiguration == configuration {
             translationConfiguration?.invalidate()
         } else {
@@ -358,28 +385,38 @@ struct RecipeCookingView: View {
         var ingredientResults: [UUID: String] = [:]
         var stepResults: [UUID: String] = [:]
 
-        if needsTranslation(recipe.title, targetIsEnglish: targetIsEnglish),
-           let response = try? await session.translate(recipe.title) {
-            titleResult = response.targetText
-        }
+        do {
+            try await session.prepareTranslation()
 
-        for ingredient in recipe.ingredients
-        where needsTranslation(ingredient.name, targetIsEnglish: targetIsEnglish) {
-            if let response = try? await session.translate(ingredient.name) {
-                ingredientResults[ingredient.id] = response.targetText
+            if needsTranslation(recipe.title, targetIsEnglish: targetIsEnglish) {
+                titleResult = try await session.translate(recipe.title).targetText
             }
-        }
 
-        for step in cookingSteps where needsTranslation(step.text, targetIsEnglish: targetIsEnglish) {
-            if let response = try? await session.translate(step.text) {
-                stepResults[step.id] = response.targetText
+            for ingredient in recipe.ingredients
+            where needsTranslation(ingredient.name, targetIsEnglish: targetIsEnglish) {
+                ingredientResults[ingredient.id] = try await session.translate(ingredient.name).targetText
             }
-        }
 
-        await MainActor.run {
-            translatedTitle = titleResult
-            translatedIngredientNames = ingredientResults
-            translatedSteps = stepResults
+            for step in cookingSteps where needsTranslation(step.text, targetIsEnglish: targetIsEnglish) {
+                stepResults[step.id] = try await session.translate(step.text).targetText
+            }
+
+            await MainActor.run {
+                translatedTitle = titleResult
+                translatedIngredientNames = ingredientResults
+                translatedSteps = stepResults
+                translationStatusMessage = nil
+            }
+        } catch {
+            await MainActor.run {
+                translatedTitle = nil
+                translatedIngredientNames = [:]
+                translatedSteps = [:]
+                translationStatusMessage = store.text(
+                    "翻译失败：\(error.localizedDescription)",
+                    "Translation failed: \(error.localizedDescription)"
+                )
+            }
         }
     }
 
