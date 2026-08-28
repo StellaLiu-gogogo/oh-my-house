@@ -74,6 +74,7 @@ struct MealPlanView: View {
     @State private var showsMemberSheet = false
     @State private var showsAdd = false
     @State private var editingMeal: MealPlanItem?
+    @State private var addMealDate = Date()
 
     private var weekDays: [Date] {
         let interval = Calendar.current.dateInterval(of: .weekOfYear, for: Date())!
@@ -93,8 +94,12 @@ struct MealPlanView: View {
                 Section {
                     let meals = store.meals.filter { Calendar.current.isDate($0.date, inSameDayAs: day) }
                     if meals.isEmpty {
-                        Text(store.text("尚未安排", "Not planned"))
-                            .foregroundStyle(.secondary)
+                        Button {
+                            addMealDate = day
+                            showsAdd = true
+                        } label: {
+                            Label(store.text("添加餐食", "Add meal"), systemImage: "plus.circle")
+                        }
                     } else {
                         ForEach(meals) { meal in
                             Button { editingMeal = meal } label: {
@@ -124,6 +129,12 @@ struct MealPlanView: View {
                                 Button(store.text("删除", "Delete"), role: .destructive) { store.deleteMeal(meal) }
                             }
                         }
+                        Button {
+                            addMealDate = day
+                            showsAdd = true
+                        } label: {
+                            Label(store.text("再添加一餐", "Add another meal"), systemImage: "plus.circle")
+                        }
                     }
                 } header: {
                     Text(day, format: .dateTime.weekday(.wide).month().day())
@@ -133,11 +144,14 @@ struct MealPlanView: View {
         .navigationTitle(store.text("一周餐食", "Weekly Meals"))
         .toolbar {
             ToolbarItem(placement: .automatic) {
-                Button { showsAdd = true } label: { Image(systemName: "plus") }
+                Button {
+                    addMealDate = Date()
+                    showsAdd = true
+                } label: { Image(systemName: "plus") }
             }
         }
         .appScreenTools(showsMemberSheet: $showsMemberSheet)
-        .sheet(isPresented: $showsAdd) { AddMealView(defaultDate: Date()) }
+        .sheet(isPresented: $showsAdd) { AddMealView(defaultDate: addMealDate) }
         .sheet(item: $editingMeal) { AddMealView(defaultDate: $0.date, item: $0) }
     }
 }
@@ -270,46 +284,149 @@ struct HouseholdCalendarView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @State private var selectedDate = Date()
     @State private var showsMemberSheet = false
+    @State private var displayMode = CalendarDisplayMode.week
+    @State private var weekOffset = 0
+
+    private var weekDays: [Date] {
+        let currentStart = Calendar.current.dateInterval(of: .weekOfYear, for: Date())!.start
+        let start = Calendar.current.date(byAdding: .weekOfYear, value: weekOffset, to: currentStart)!
+        return (0..<7).compactMap { Calendar.current.date(byAdding: .day, value: $0, to: start) }
+    }
 
     var body: some View {
         List {
-            DatePicker(
-                store.text("选择日期", "Select date"),
-                selection: $selectedDate,
-                displayedComponents: .date
-            )
-            .datePickerStyle(.graphical)
-
-            let meals = store.meals.filter { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }
-            let chores = store.chores.filter { $0.dueDate.map { Calendar.current.isDate($0, inSameDayAs: selectedDate) } ?? false }
-            let events = store.events.filter { eventOccurs($0, on: selectedDate) }
-            let maintenance = store.maintenanceItems.filter {
-                !$0.isCompleted && Calendar.current.isDate($0.nextDate, inSameDayAs: selectedDate)
+            Section {
+                Picker(store.text("显示方式", "View"), selection: $displayMode) {
+                    Text(store.text("周", "Week")).tag(CalendarDisplayMode.week)
+                    Text(store.text("月", "Month")).tag(CalendarDisplayMode.month)
+                }
+                .pickerStyle(.segmented)
             }
 
-            if !meals.isEmpty {
-                Section(store.text("餐食", "Meals")) { ForEach(meals) { Text($0.title) } }
-            }
-            if !chores.isEmpty {
-                Section(store.text("家务", "Chores")) { ForEach(chores) { ChoreRow(chore: $0) } }
-            }
-            if !events.isEmpty {
-                Section(store.text("家庭事件", "Events")) { ForEach(events) { Text($0.title) } }
-            }
-            if !maintenance.isEmpty {
-                Section(store.text("家庭维护", "Home Maintenance")) {
-                    ForEach(maintenance) { item in
-                        Button { store.completeMaintenance(item) } label: {
-                            Label(item.title, systemImage: "circle")
+            if displayMode == .week {
+                Section {
+                    HStack {
+                        Button { weekOffset -= 1 } label: { Image(systemName: "chevron.left") }
+                        Spacer()
+                        if let first = weekDays.first, let last = weekDays.last {
+                            Text(first, format: .dateTime.month().day())
+                            Text("–")
+                            Text(last, format: .dateTime.month().day())
                         }
-                        .buttonStyle(.plain)
+                        Spacer()
+                        Button { weekOffset += 1 } label: { Image(systemName: "chevron.right") }
                     }
                 }
+
+                ForEach(weekDays, id: \.self) { day in
+                    weeklyDaySection(day)
+                }
+            } else {
+                DatePicker(
+                    store.text("选择日期", "Select date"),
+                    selection: $selectedDate,
+                    displayedComponents: .date
+                )
+                .datePickerStyle(.graphical)
+
+                monthlySelectedDaySections
             }
         }
         .navigationTitle(store.text("日历", "Calendar"))
         .appScreenTools(showsMemberSheet: $showsMemberSheet)
     }
+
+    @ViewBuilder
+    private func weeklyDaySection(_ day: Date) -> some View {
+        let dinners = store.meals.filter {
+            $0.slot == "dinner" && Calendar.current.isDate($0.date, inSameDayAs: day)
+        }
+        let chores = chores(on: day)
+        let events = store.events.filter { eventOccurs($0, on: day) }
+        let maintenance = maintenance(on: day)
+
+        Section {
+            VStack(alignment: .leading, spacing: 6) {
+                Label(store.text("晚餐", "Dinner"), systemImage: "fork.knife")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if dinners.isEmpty {
+                    Text(store.text("尚未安排", "Not planned"))
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(dinners) { Text($0.title) }
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Label(store.text("家务", "Chores"), systemImage: "checkmark.circle")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if chores.isEmpty {
+                    Text(store.text("没有家务", "No chores"))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            ForEach(chores) { ChoreRow(chore: $0) }
+
+            ForEach(events) { event in
+                Label(event.title, systemImage: "calendar.badge.clock")
+            }
+            ForEach(maintenance) { item in
+                Button { store.completeMaintenance(item) } label: {
+                    Label(item.title, systemImage: "wrench.and.screwdriver")
+                }
+                .buttonStyle(.plain)
+            }
+        } header: {
+            Text(day, format: .dateTime.weekday(.wide).month().day())
+        }
+    }
+
+    @ViewBuilder
+    private var monthlySelectedDaySections: some View {
+        let meals = store.meals.filter { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }
+        let dayChores = chores(on: selectedDate)
+        let events = store.events.filter { eventOccurs($0, on: selectedDate) }
+        let dayMaintenance = maintenance(on: selectedDate)
+
+        if !meals.isEmpty {
+            Section(store.text("餐食", "Meals")) { ForEach(meals) { Text($0.title) } }
+        }
+        if !dayChores.isEmpty {
+            Section(store.text("家务", "Chores")) { ForEach(dayChores) { ChoreRow(chore: $0) } }
+        }
+        if !events.isEmpty {
+            Section(store.text("家庭事件", "Events")) { ForEach(events) { Text($0.title) } }
+        }
+        if !dayMaintenance.isEmpty {
+            Section(store.text("家庭维护", "Home Maintenance")) {
+                ForEach(dayMaintenance) { item in
+                    Button { store.completeMaintenance(item) } label: {
+                        Label(item.title, systemImage: "circle")
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private func chores(on day: Date) -> [ChoreItem] {
+        store.chores.filter {
+            $0.dueDate.map { Calendar.current.isDate($0, inSameDayAs: day) } ?? false
+        }
+    }
+
+    private func maintenance(on day: Date) -> [MaintenanceItem] {
+        store.maintenanceItems.filter {
+            !$0.isCompleted && Calendar.current.isDate($0.nextDate, inSameDayAs: day)
+        }
+    }
+}
+
+private enum CalendarDisplayMode: String {
+    case week
+    case month
 }
 
 struct AddMealView: View {

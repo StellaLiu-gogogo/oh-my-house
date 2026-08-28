@@ -1244,8 +1244,9 @@ Calendar 的固定入口为：
 
     Plan → Calendar
 
-iPhone Calendar 默认使用月视图。日期下方以少量颜色点表示当天是否有 Meals、Chores、Maintenance
-或 Events，不在月格中显示完整标题。
+iPhone Calendar 默认使用周视图，从周一到周日直接显示每天的 Dinner 与 Chores；当天存在
+Maintenance 或 Event 时也继续显示。用户可以前后切换周，并切换到月视图查看较远日期。月视图的
+日期下方以少量颜色点表示当天是否有 Meals、Chores、Maintenance 或 Events，不在月格中显示完整标题。
 
 选择日期后，内容仍按生活领域分区，并允许临时只查看某个领域。Calendar 中的 Chore 和 Maintenance
 也可以直接完成并 undo。
