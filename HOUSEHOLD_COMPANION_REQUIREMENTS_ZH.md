@@ -1118,6 +1118,11 @@ Recipe 可以从相册添加一张可选照片；做法按照可增删的有序�
 
 Recipe ingredients 必须经过用户简单检查后才能加入 Shopping，不自动加入。
 
+删除一个已经安排的 Meal 时，同时从 Shopping List 移除由这顿 Meal 加入的食材。只移除仍然关联这顿
+Meal 的 Shopping Item；用户手动添加的项目、Maintenance / Supplies 项目以及其他 Meal 的食材不受影响。
+如果以后一个合并后的 Shopping Item 同时关联多个来源，则只移除被删除 Meal 的来源关系；仍有其他来源时
+保留该 Shopping Item。
+
 第一阶段不根据“咖喱饭”“煮面”等简单自由文本自动猜测 ingredients。
 
 ## 19.10 Chore 创建、分配与轮流

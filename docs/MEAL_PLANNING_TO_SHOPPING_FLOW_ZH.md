@@ -116,6 +116,8 @@ Recipe ingredients 在加入 Shopping 前必须经过用户确认。
 - ingredient name 可以显示为当前成员首选语言；
 - 数量、单位、品牌和型号不做机械翻译；
 - Shopping Item 保留来源关系，不把翻译后的文字复制成一份新的业务记录。
+- 删除 Meal 时，同步移除只由该 Meal 产生的 Shopping Items；不影响手动项目或其他来源的项目。
+- 若未来一个合并项目有多个来源，删除 Meal 只移除对应来源；仍有其他来源时保留项目。
 
 ## 6. 已确认的选择
 

@@ -211,7 +211,34 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
     }
 
     func deleteMeal(_ item: MealPlanItem) {
-        deletePlanningItem(id: item.id, entityName: "MealEntity")
+        let mealRequest = NSFetchRequest<NSManagedObject>(entityName: "MealEntity")
+        mealRequest.predicate = NSPredicate(format: "id == %@", item.id as CVarArg)
+
+        let shoppingRequest = NSFetchRequest<ShoppingItemEntity>(entityName: "ShoppingItemEntity")
+        shoppingRequest.predicate = NSPredicate(
+            format: "householdID == %@ AND sourceKind == %@ AND sourceID == %@ AND deletedAt == nil",
+            activeHouseholdID as CVarArg,
+            ShoppingSource.meals.rawValue,
+            item.id as CVarArg
+        )
+
+        guard let savedMeal = try? context.fetch(mealRequest).first else { return }
+        let linkedShoppingItems = (try? context.fetch(shoppingRequest)) ?? []
+        let now = Date()
+        savedMeal.setValue(now, forKey: "deletedAt")
+        savedMeal.setValue(now, forKey: "updatedAt")
+        for shoppingItem in linkedShoppingItems {
+            shoppingItem.deletedAt = now
+            shoppingItem.updatedAt = now
+        }
+
+        do {
+            try context.save()
+            reloadPlanningItems()
+            reloadShoppingItems()
+        } catch {
+            context.rollback()
+        }
     }
 
     func addRecipe(
