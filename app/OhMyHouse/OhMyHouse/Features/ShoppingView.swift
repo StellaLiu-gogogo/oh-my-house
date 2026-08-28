@@ -5,6 +5,7 @@ struct ShoppingView: View {
     @State private var showsMemberSheet = false
     @State private var showsAddItem = false
     @State private var filter = ShoppingFilter.all
+    @State private var editingItem: ShoppingItemEntity?
 
     var body: some View {
         NavigationStack {
@@ -53,7 +54,10 @@ struct ShoppingView: View {
                 }
             }
             .sheet(isPresented: $showsAddItem) {
-                AddShoppingItemView()
+                ShoppingItemFormView()
+            }
+            .sheet(item: $editingItem) { item in
+                ShoppingItemFormView(item: item)
             }
         }
     }
@@ -85,6 +89,25 @@ struct ShoppingView: View {
             }
         }
         .buttonStyle(.plain)
+        .swipeActions(edge: .trailing) {
+            Button(role: .destructive) {
+                store.deleteShoppingItem(item)
+            } label: {
+                Label(store.text("删除", "Delete"), systemImage: "trash")
+            }
+            Button {
+                editingItem = item
+            } label: {
+                Label(store.text("编辑", "Edit"), systemImage: "pencil")
+            }
+            .tint(.blue)
+        }
+        .contextMenu {
+            Button(store.text("编辑", "Edit")) { editingItem = item }
+            Button(store.text("删除", "Delete"), role: .destructive) {
+                store.deleteShoppingItem(item)
+            }
+        }
     }
 }
 
@@ -97,11 +120,18 @@ private enum ShoppingFilter: String, Identifiable {
     var id: Self { self }
 }
 
-private struct AddShoppingItemView: View {
+private struct ShoppingItemFormView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @Environment(\.dismiss) private var dismiss
-    @State private var title = ""
-    @State private var source = ShoppingSource.meals
+    let item: ShoppingItemEntity?
+    @State private var title: String
+    @State private var source: ShoppingSource
+
+    init(item: ShoppingItemEntity? = nil) {
+        self.item = item
+        _title = State(initialValue: item?.title ?? "")
+        _source = State(initialValue: item.flatMap { ShoppingSource(rawValue: $0.sourceKind) } ?? .meals)
+    }
 
     var body: some View {
         NavigationStack {
@@ -113,7 +143,9 @@ private struct AddShoppingItemView: View {
                     Text(store.text("维护用品", "Maintenance Items")).tag(ShoppingSource.maintenance)
                 }
             }
-            .navigationTitle(store.text("添加购物项目", "Add Shopping Item"))
+            .navigationTitle(item == nil
+                ? store.text("添加购物项目", "Add Shopping Item")
+                : store.text("编辑购物项目", "Edit Shopping Item"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(store.text("取消", "Cancel")) { dismiss() }
@@ -125,8 +157,12 @@ private struct AddShoppingItemView: View {
                     .accessibilityLabel(store.text("切换为英文", "Switch to Chinese"))
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(store.text("添加", "Add")) {
-                        store.addShoppingItem(title: title, source: source)
+                    Button(item == nil ? store.text("添加", "Add") : store.text("保存", "Save")) {
+                        if let item {
+                            store.updateShoppingItem(item, title: title, source: source)
+                        } else {
+                            store.addShoppingItem(title: title, source: source)
+                        }
                         dismiss()
                     }
                     .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

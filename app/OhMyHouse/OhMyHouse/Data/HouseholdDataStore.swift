@@ -154,6 +154,21 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         saveAndReload()
     }
 
+    func updateShoppingItem(_ item: ShoppingItemEntity, title: String, source: ShoppingSource) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        item.title = trimmed
+        item.sourceKind = source.rawValue
+        item.updatedAt = Date()
+        saveAndReload()
+    }
+
+    func deleteShoppingItem(_ item: ShoppingItemEntity) {
+        item.deletedAt = Date()
+        item.updatedAt = Date()
+        saveAndReload()
+    }
+
     func addMeal(
         title: String,
         date: Date,
