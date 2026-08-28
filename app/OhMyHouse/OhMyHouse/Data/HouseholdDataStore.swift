@@ -235,6 +235,18 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         savePlanningItem(item, title: trimmed, entityName: "WishlistItemEntity")
     }
 
+    func updateWishlistItem(_ item: WishlistItem, title: String) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        var changed = item
+        changed.title = trimmed
+        updatePlanningItem(changed, title: trimmed, entityName: "WishlistItemEntity")
+    }
+
+    func deleteWishlistItem(_ item: WishlistItem) {
+        deletePlanningItem(id: item.id, entityName: "WishlistItemEntity")
+    }
+
     func markWishlistPurchased(_ item: WishlistItem, addToInventory: Bool) {
         var changed = item
         changed.status = "purchased"
@@ -259,6 +271,19 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         savePlanningItem(item, title: trimmed, entityName: "InventoryItemEntity")
     }
 
+    func updateInventoryItem(_ item: InventoryItem, title: String, room: String?) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        var changed = item
+        changed.title = trimmed
+        changed.room = room?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        updatePlanningItem(changed, title: trimmed, entityName: "InventoryItemEntity")
+    }
+
+    func deleteInventoryItem(_ item: InventoryItem) {
+        deletePlanningItem(id: item.id, entityName: "InventoryItemEntity")
+    }
+
     func addMaintenance(
         title: String,
         nextDate: Date,
@@ -279,6 +304,34 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
            !requiredItem.isEmpty {
             addShoppingItem(title: requiredItem, source: .maintenance, sourceID: item.id)
         }
+    }
+
+    func updateMaintenance(
+        _ item: MaintenanceItem,
+        title: String,
+        nextDate: Date,
+        inventoryItemID: UUID?,
+        recurrence: SimpleRecurrence,
+        assigneeIDs: [UUID],
+        requiredItem: String?
+    ) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        var changed = item
+        changed.title = trimmed
+        changed.nextDate = nextDate
+        changed.inventoryItemID = inventoryItemID
+        changed.recurrence = recurrence.rawValue
+        changed.assigneeIDs = assigneeIDs
+        updatePlanningItem(changed, title: trimmed, entityName: "MaintenanceEntity")
+        if let requiredItem = requiredItem?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !requiredItem.isEmpty {
+            addShoppingItem(title: requiredItem, source: .maintenance, sourceID: item.id)
+        }
+    }
+
+    func deleteMaintenance(_ item: MaintenanceItem) {
+        deletePlanningItem(id: item.id, entityName: "MaintenanceEntity")
     }
 
     func completeMaintenance(_ item: MaintenanceItem) {
@@ -390,6 +443,16 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
               let data = try? JSONEncoder().encode(value) else { return }
         object.setValue(title, forKey: "title")
         object.setValue(data, forKey: "payload")
+        object.setValue(Date(), forKey: "updatedAt")
+        try? context.save()
+        reloadPlanningItems()
+    }
+
+    private func deletePlanningItem(id: UUID, entityName: String) {
+        let request = NSFetchRequest<NSManagedObject>(entityName: entityName)
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        guard let object = try? context.fetch(request).first else { return }
+        object.setValue(Date(), forKey: "deletedAt")
         object.setValue(Date(), forKey: "updatedAt")
         try? context.save()
         reloadPlanningItems()

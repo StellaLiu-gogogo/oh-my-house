@@ -58,6 +58,7 @@ private struct WishlistView: View {
     @State private var showsMemberSheet = false
     @State private var showsAdd = false
     @State private var purchasedItem: WishlistItem?
+    @State private var editingItem: WishlistItem?
 
     var body: some View {
         List {
@@ -75,6 +76,19 @@ private struct WishlistView: View {
                             purchasedItem = item
                         }
                         .buttonStyle(.borderless)
+                    }
+                    .swipeActions {
+                        Button(role: .destructive) { store.deleteWishlistItem(item) } label: {
+                            Label(store.text("删除", "Delete"), systemImage: "trash")
+                        }
+                        Button { editingItem = item } label: {
+                            Label(store.text("编辑", "Edit"), systemImage: "pencil")
+                        }
+                        .tint(.blue)
+                    }
+                    .contextMenu {
+                        Button(store.text("编辑", "Edit")) { editingItem = item }
+                        Button(store.text("删除", "Delete"), role: .destructive) { store.deleteWishlistItem(item) }
                     }
                 }
             }
@@ -95,6 +109,7 @@ private struct WishlistView: View {
         }
         .appScreenTools(showsMemberSheet: $showsMemberSheet)
         .sheet(isPresented: $showsAdd) { AddWishlistView() }
+        .sheet(item: $editingItem) { AddWishlistView(item: $0) }
         .confirmationDialog(
             store.text("要同时添加到家庭物品吗？", "Also add this to Inventory?"),
             isPresented: Binding(
@@ -120,6 +135,7 @@ private struct InventoryView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @State private var showsMemberSheet = false
     @State private var showsAdd = false
+    @State private var editingItem: InventoryItem?
 
     var body: some View {
         List {
@@ -143,6 +159,21 @@ private struct InventoryView: View {
                             .accessibilityLabel(store.text("来自愿望清单", "From Wishlist"))
                     }
                 }
+                .contentShape(Rectangle())
+                .onTapGesture { editingItem = item }
+                .swipeActions {
+                    Button(role: .destructive) { store.deleteInventoryItem(item) } label: {
+                        Label(store.text("删除", "Delete"), systemImage: "trash")
+                    }
+                    Button { editingItem = item } label: {
+                        Label(store.text("编辑", "Edit"), systemImage: "pencil")
+                    }
+                    .tint(.blue)
+                }
+                .contextMenu {
+                    Button(store.text("编辑", "Edit")) { editingItem = item }
+                    Button(store.text("删除", "Delete"), role: .destructive) { store.deleteInventoryItem(item) }
+                }
             }
         }
         .navigationTitle(store.text("家庭物品", "Inventory"))
@@ -153,6 +184,7 @@ private struct InventoryView: View {
         }
         .appScreenTools(showsMemberSheet: $showsMemberSheet)
         .sheet(isPresented: $showsAdd) { AddInventoryView() }
+        .sheet(item: $editingItem) { AddInventoryView(item: $0) }
     }
 }
 
@@ -160,6 +192,7 @@ private struct MaintenanceListView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @State private var showsMemberSheet = false
     @State private var showsAdd = false
+    @State private var editingItem: MaintenanceItem?
 
     var body: some View {
         List {
@@ -187,6 +220,7 @@ private struct MaintenanceListView: View {
         }
         .appScreenTools(showsMemberSheet: $showsMemberSheet)
         .sheet(isPresented: $showsAdd) { AddMaintenanceView() }
+        .sheet(item: $editingItem) { AddMaintenanceView(item: $0) }
     }
 
     private func maintenanceRow(_ item: MaintenanceItem) -> some View {
@@ -209,20 +243,42 @@ private struct MaintenanceListView: View {
             }
         }
         .buttonStyle(.plain)
+        .swipeActions {
+            Button(role: .destructive) { store.deleteMaintenance(item) } label: {
+                Label(store.text("删除", "Delete"), systemImage: "trash")
+            }
+            Button { editingItem = item } label: {
+                Label(store.text("编辑", "Edit"), systemImage: "pencil")
+            }
+            .tint(.blue)
+        }
+        .contextMenu {
+            Button(store.text("编辑", "Edit")) { editingItem = item }
+            Button(store.text("删除", "Delete"), role: .destructive) { store.deleteMaintenance(item) }
+        }
     }
 }
 
 private struct AddWishlistView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @Environment(\.dismiss) private var dismiss
-    @State private var title = ""
+    let item: WishlistItem?
+    @State private var title: String
+
+    init(item: WishlistItem? = nil) {
+        self.item = item
+        _title = State(initialValue: item?.title ?? "")
+    }
 
     var body: some View {
         NavigationStack {
             Form { TextField(store.text("想买或改善什么？", "What would improve your home?"), text: $title) }
-                .navigationTitle(store.text("添加愿望", "Add Wishlist Item"))
+                .navigationTitle(item == nil
+                    ? store.text("添加愿望", "Add Wishlist Item")
+                    : store.text("编辑愿望", "Edit Wishlist Item"))
                 .homeFormToolbar(canSave: !title.trimmed.isEmpty) {
-                    store.addWishlistItem(title: title)
+                    if let item { store.updateWishlistItem(item, title: title) }
+                    else { store.addWishlistItem(title: title) }
                     dismiss()
                 }
         }
@@ -232,8 +288,15 @@ private struct AddWishlistView: View {
 private struct AddInventoryView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @Environment(\.dismiss) private var dismiss
-    @State private var title = ""
-    @State private var room = ""
+    let item: InventoryItem?
+    @State private var title: String
+    @State private var room: String
+
+    init(item: InventoryItem? = nil) {
+        self.item = item
+        _title = State(initialValue: item?.title ?? "")
+        _room = State(initialValue: item?.room ?? "")
+    }
 
     var body: some View {
         NavigationStack {
@@ -241,9 +304,12 @@ private struct AddInventoryView: View {
                 TextField(store.text("物品名称", "Item name"), text: $title)
                 TextField(store.text("房间或区域（可选）", "Room or area (optional)"), text: $room)
             }
-            .navigationTitle(store.text("添加家庭物品", "Add Inventory Item"))
+            .navigationTitle(item == nil
+                ? store.text("添加家庭物品", "Add Inventory Item")
+                : store.text("编辑家庭物品", "Edit Inventory Item"))
             .homeFormToolbar(canSave: !title.trimmed.isEmpty) {
-                store.addInventoryItem(title: title, room: room)
+                if let item { store.updateInventoryItem(item, title: title, room: room) }
+                else { store.addInventoryItem(title: title, room: room) }
                 dismiss()
             }
         }
@@ -253,12 +319,22 @@ private struct AddInventoryView: View {
 private struct AddMaintenanceView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @Environment(\.dismiss) private var dismiss
-    @State private var title = ""
-    @State private var nextDate = Date()
+    let item: MaintenanceItem?
+    @State private var title: String
+    @State private var nextDate: Date
     @State private var inventoryID: UUID?
-    @State private var recurrence: SimpleRecurrence = .none
-    @State private var assigneeIDs = Set<UUID>()
+    @State private var recurrence: SimpleRecurrence
+    @State private var assigneeIDs: Set<UUID>
     @State private var requiredItem = ""
+
+    init(item: MaintenanceItem? = nil) {
+        self.item = item
+        _title = State(initialValue: item?.title ?? "")
+        _nextDate = State(initialValue: item?.nextDate ?? Date())
+        _inventoryID = State(initialValue: item?.inventoryItemID)
+        _recurrence = State(initialValue: item.flatMap { SimpleRecurrence(rawValue: $0.recurrence) } ?? .none)
+        _assigneeIDs = State(initialValue: Set(item?.assigneeIDs ?? []))
+    }
 
     var body: some View {
         NavigationStack {
@@ -295,12 +371,21 @@ private struct AddMaintenanceView: View {
                     Text(store.text("填写后会加入统一购物清单，并标记为维护来源。", "This will be added to the shared Shopping List with a Maintenance source."))
                 }
             }
-            .navigationTitle(store.text("添加维护", "Add Maintenance"))
+            .navigationTitle(item == nil
+                ? store.text("添加维护", "Add Maintenance")
+                : store.text("编辑维护", "Edit Maintenance"))
             .homeFormToolbar(canSave: !title.trimmed.isEmpty) {
-                store.addMaintenance(
-                    title: title, nextDate: nextDate, inventoryItemID: inventoryID,
-                    recurrence: recurrence, assigneeIDs: Array(assigneeIDs), requiredItem: requiredItem
-                )
+                if let item {
+                    store.updateMaintenance(
+                        item, title: title, nextDate: nextDate, inventoryItemID: inventoryID,
+                        recurrence: recurrence, assigneeIDs: Array(assigneeIDs), requiredItem: requiredItem
+                    )
+                } else {
+                    store.addMaintenance(
+                        title: title, nextDate: nextDate, inventoryItemID: inventoryID,
+                        recurrence: recurrence, assigneeIDs: Array(assigneeIDs), requiredItem: requiredItem
+                    )
+                }
                 dismiss()
             }
         }
