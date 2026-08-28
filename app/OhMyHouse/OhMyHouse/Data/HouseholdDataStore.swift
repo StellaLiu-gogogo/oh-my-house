@@ -185,6 +185,29 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         savePlanningItem(item, title: trimmed, entityName: "MealEntity")
     }
 
+    func updateMeal(
+        _ item: MealPlanItem,
+        title: String,
+        date: Date,
+        slot: String,
+        participantIDs: [UUID],
+        servings: Int
+    ) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        var changed = item
+        changed.title = trimmed
+        changed.date = date
+        changed.slot = slot
+        changed.participantIDs = participantIDs
+        changed.servings = servings
+        updatePlanningItem(changed, title: trimmed, entityName: "MealEntity")
+    }
+
+    func deleteMeal(_ item: MealPlanItem) {
+        deletePlanningItem(id: item.id, entityName: "MealEntity")
+    }
+
     func addChore(
         title: String,
         dueDate: Date?,
@@ -202,10 +225,59 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         savePlanningItem(item, title: trimmed, entityName: "ChoreEntity")
     }
 
+    func updateChore(
+        _ item: ChoreItem,
+        title: String,
+        dueDate: Date?,
+        assignmentMode: ChoreAssignmentMode,
+        assigneeIDs: [UUID],
+        recurrence: SimpleRecurrence
+    ) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        var changed = item
+        changed.title = trimmed
+        changed.dueDate = dueDate
+        changed.assignmentMode = assignmentMode.rawValue
+        changed.assigneeIDs = assigneeIDs
+        changed.recurrence = recurrence.rawValue
+        if assignmentMode != .rotating { changed.rotationIndex = nil }
+        updatePlanningItem(changed, title: trimmed, entityName: "ChoreEntity")
+    }
+
+    func deleteChore(_ item: ChoreItem) {
+        deletePlanningItem(id: item.id, entityName: "ChoreEntity")
+    }
+
     func toggleChore(_ item: ChoreItem) {
         var changed = item
-        changed.isCompleted.toggle()
-        changed.completedAt = changed.isCompleted ? Date() : nil
+        if item.isCompleted {
+            changed.isCompleted = false
+            changed.completedAt = nil
+            if let nextID = item.generatedNextID {
+                deletePlanningItem(id: nextID, entityName: "ChoreEntity")
+                changed.generatedNextID = nil
+            }
+        } else {
+            changed.isCompleted = true
+            changed.completedAt = Date()
+            let recurrence = SimpleRecurrence(rawValue: item.recurrence) ?? .none
+            if recurrence != .none,
+               let dueDate = item.dueDate,
+               let nextDueDate = nextDate(after: dueDate, recurrence: recurrence) {
+                let next = ChoreItem(
+                    id: UUID(), title: item.title, dueDate: nextDueDate,
+                    assignmentMode: item.assignmentMode, assigneeIDs: item.assigneeIDs,
+                    recurrence: item.recurrence, isCompleted: false,
+                    completedAt: nil, generatedNextID: nil,
+                    rotationIndex: item.assignmentMode == ChoreAssignmentMode.rotating.rawValue && !item.assigneeIDs.isEmpty
+                        ? ((item.rotationIndex ?? 0) + 1) % item.assigneeIDs.count
+                        : nil
+                )
+                changed.generatedNextID = next.id
+                savePlanningItem(next, title: next.title, entityName: "ChoreEntity")
+            }
+        }
         updatePlanningItem(changed, title: changed.title, entityName: "ChoreEntity")
     }
 
@@ -226,6 +298,33 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
             reminderDate: reminderDate, reminderText: reminderText
         )
         savePlanningItem(item, title: trimmed, entityName: "HouseholdEventEntity")
+    }
+
+    func updateEvent(
+        _ item: HouseholdEventItem,
+        title: String,
+        startDate: Date,
+        endDate: Date?,
+        isAllDay: Bool,
+        recurrence: SimpleRecurrence,
+        reminderDate: Date?,
+        reminderText: String?
+    ) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        var changed = item
+        changed.title = trimmed
+        changed.startDate = startDate
+        changed.endDate = endDate
+        changed.isAllDay = isAllDay
+        changed.recurrence = recurrence.rawValue
+        changed.reminderDate = reminderDate
+        changed.reminderText = reminderText
+        updatePlanningItem(changed, title: trimmed, entityName: "HouseholdEventEntity")
+    }
+
+    func deleteEvent(_ item: HouseholdEventItem) {
+        deletePlanningItem(id: item.id, entityName: "HouseholdEventEntity")
     }
 
     func addWishlistItem(title: String) {

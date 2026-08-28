@@ -22,7 +22,7 @@ struct TodayView: View {
 
     private var todayEvents: [HouseholdEventItem] {
         store.events.filter {
-            Calendar.current.isDateInToday($0.startDate) ||
+            eventOccurs($0, on: Date()) ||
             ($0.reminderDate.map(Calendar.current.isDateInToday) ?? false)
         }
     }

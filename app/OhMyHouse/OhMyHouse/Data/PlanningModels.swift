@@ -18,6 +18,26 @@ struct ChoreItem: Codable, Identifiable {
     var recurrence: String
     var isCompleted: Bool
     var completedAt: Date?
+    var generatedNextID: UUID? = nil
+    var rotationIndex: Int? = nil
+}
+
+func eventOccurs(_ event: HouseholdEventItem, on date: Date, calendar: Calendar = .current) -> Bool {
+    let startDay = calendar.startOfDay(for: event.startDate)
+    let targetDay = calendar.startOfDay(for: date)
+    guard targetDay >= startDay else { return false }
+    let dayDistance = calendar.dateComponents([.day], from: startDay, to: targetDay).day ?? 0
+    switch SimpleRecurrence(rawValue: event.recurrence) ?? .none {
+    case .none: return calendar.isDate(startDay, inSameDayAs: targetDay)
+    case .daily: return true
+    case .weekly: return dayDistance.isMultiple(of: 7)
+    case .biweekly: return dayDistance.isMultiple(of: 14)
+    case .monthly:
+        return calendar.component(.day, from: startDay) == calendar.component(.day, from: targetDay)
+    case .yearly:
+        return calendar.component(.month, from: startDay) == calendar.component(.month, from: targetDay)
+            && calendar.component(.day, from: startDay) == calendar.component(.day, from: targetDay)
+    }
 }
 
 struct HouseholdEventItem: Codable, Identifiable {

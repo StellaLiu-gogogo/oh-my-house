@@ -19,7 +19,10 @@ struct PlanView: View {
     }
 
     private var eventsThisWeek: Int {
-        store.events.filter { weekInterval.contains($0.startDate) }.count
+        let days = (0..<7).compactMap {
+            Calendar.current.date(byAdding: .day, value: $0, to: weekInterval.start)
+        }
+        return store.events.filter { event in days.contains { eventOccurs(event, on: $0) } }.count
     }
 
     var body: some View {
@@ -70,6 +73,7 @@ struct MealPlanView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @State private var showsMemberSheet = false
     @State private var showsAdd = false
+    @State private var editingMeal: MealPlanItem?
 
     private var weekDays: [Date] {
         let interval = Calendar.current.dateInterval(of: .weekOfYear, for: Date())!
@@ -86,14 +90,26 @@ struct MealPlanView: View {
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(meals) { meal in
-                            HStack {
-                                Text(meal.slot == "lunch" ? store.text("午餐", "Lunch") : store.text("晚餐", "Dinner"))
-                                    .foregroundStyle(.secondary)
-                                Text(meal.title)
-                                Spacer()
-                                Text(store.text("\(meal.servings) 份", "\(meal.servings) servings"))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                            Button { editingMeal = meal } label: {
+                                HStack {
+                                    Text(meal.slot == "lunch" ? store.text("午餐", "Lunch") : store.text("晚餐", "Dinner"))
+                                        .foregroundStyle(.secondary)
+                                    Text(meal.title)
+                                    Spacer()
+                                    Text(store.text("\(meal.servings) 份", "\(meal.servings) servings"))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .swipeActions {
+                                Button(role: .destructive) { store.deleteMeal(meal) } label: {
+                                    Label(store.text("删除", "Delete"), systemImage: "trash")
+                                }
+                            }
+                            .contextMenu {
+                                Button(store.text("编辑", "Edit")) { editingMeal = meal }
+                                Button(store.text("删除", "Delete"), role: .destructive) { store.deleteMeal(meal) }
                             }
                         }
                     }
@@ -110,6 +126,7 @@ struct MealPlanView: View {
         }
         .appScreenTools(showsMemberSheet: $showsMemberSheet)
         .sheet(isPresented: $showsAdd) { AddMealView(defaultDate: Date()) }
+        .sheet(item: $editingMeal) { AddMealView(defaultDate: $0.date, item: $0) }
     }
 }
 
@@ -117,6 +134,7 @@ struct ChoreListView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @State private var showsMemberSheet = false
     @State private var showsAdd = false
+    @State private var editingChore: ChoreItem?
 
     var body: some View {
         List {
@@ -127,12 +145,14 @@ struct ChoreListView: View {
                 }
                 ForEach(store.chores.filter { !$0.isCompleted }) { chore in
                     ChoreRow(chore: chore)
+                        .choreActions(chore, store: store, editing: $editingChore)
                 }
             }
             if store.chores.contains(where: \.isCompleted) {
                 Section(store.text("已完成", "Completed")) {
                     ForEach(store.chores.filter(\.isCompleted)) { chore in
                         ChoreRow(chore: chore)
+                            .choreActions(chore, store: store, editing: $editingChore)
                     }
                 }
             }
@@ -145,6 +165,7 @@ struct ChoreListView: View {
         }
         .appScreenTools(showsMemberSheet: $showsMemberSheet)
         .sheet(isPresented: $showsAdd) { AddChoreView() }
+        .sheet(item: $editingChore) { AddChoreView(item: $0) }
     }
 }
 
@@ -162,8 +183,15 @@ private struct ChoreRow: View {
                         if let dueDate = chore.dueDate {
                             Text(dueDate, format: .dateTime.month().day())
                         }
+                        let displayedIDs: [UUID] = {
+                            if chore.assignmentMode == ChoreAssignmentMode.rotating.rawValue,
+                               !chore.assigneeIDs.isEmpty {
+                                return [chore.assigneeIDs[(chore.rotationIndex ?? 0) % chore.assigneeIDs.count]]
+                            }
+                            return chore.assigneeIDs
+                        }()
                         let names = store.members
-                            .filter { chore.assigneeIDs.contains($0.id) }
+                            .filter { displayedIDs.contains($0.id) }
                             .map(\.name).joined(separator: ", ")
                         Text(names.isEmpty ? store.text("未分配", "Unassigned") : names)
                     }
@@ -180,6 +208,7 @@ struct EventListView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @State private var showsMemberSheet = false
     @State private var showsAdd = false
+    @State private var editingEvent: HouseholdEventItem?
 
     var body: some View {
         List {
@@ -190,13 +219,25 @@ struct EventListView: View {
                 )
             } else {
                 ForEach(store.events) { event in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(event.title)
-                        Text(event.startDate, format: event.isAllDay
-                             ? .dateTime.year().month().day()
-                             : .dateTime.year().month().day().hour().minute())
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    Button { editingEvent = event } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(event.title)
+                            Text(event.startDate, format: event.isAllDay
+                                 ? .dateTime.year().month().day()
+                                 : .dateTime.year().month().day().hour().minute())
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .swipeActions {
+                        Button(role: .destructive) { store.deleteEvent(event) } label: {
+                            Label(store.text("删除", "Delete"), systemImage: "trash")
+                        }
+                    }
+                    .contextMenu {
+                        Button(store.text("编辑", "Edit")) { editingEvent = event }
+                        Button(store.text("删除", "Delete"), role: .destructive) { store.deleteEvent(event) }
                     }
                 }
             }
@@ -209,6 +250,7 @@ struct EventListView: View {
         }
         .appScreenTools(showsMemberSheet: $showsMemberSheet)
         .sheet(isPresented: $showsAdd) { AddEventView() }
+        .sheet(item: $editingEvent) { AddEventView(item: $0) }
     }
 }
 
@@ -228,7 +270,7 @@ struct HouseholdCalendarView: View {
 
             let meals = store.meals.filter { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) }
             let chores = store.chores.filter { $0.dueDate.map { Calendar.current.isDate($0, inSameDayAs: selectedDate) } ?? false }
-            let events = store.events.filter { Calendar.current.isDate($0.startDate, inSameDayAs: selectedDate) }
+            let events = store.events.filter { eventOccurs($0, on: selectedDate) }
             let maintenance = store.maintenanceItems.filter {
                 !$0.isCompleted && Calendar.current.isDate($0.nextDate, inSameDayAs: selectedDate)
             }
@@ -261,13 +303,21 @@ struct HouseholdCalendarView: View {
 struct AddMealView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @Environment(\.dismiss) private var dismiss
-    @State private var title = ""
+    let item: MealPlanItem?
+    @State private var title: String
     @State private var date: Date
-    @State private var slot = "dinner"
-    @State private var participantIDs = Set<UUID>()
-    @State private var servings = 1
+    @State private var slot: String
+    @State private var participantIDs: Set<UUID>
+    @State private var servings: Int
 
-    init(defaultDate: Date) { _date = State(initialValue: defaultDate) }
+    init(defaultDate: Date, item: MealPlanItem? = nil) {
+        self.item = item
+        _title = State(initialValue: item?.title ?? "")
+        _date = State(initialValue: item?.date ?? defaultDate)
+        _slot = State(initialValue: item?.slot ?? "dinner")
+        _participantIDs = State(initialValue: Set(item?.participantIDs ?? []))
+        _servings = State(initialValue: item?.servings ?? 1)
+    }
 
     var body: some View {
         NavigationStack {
@@ -288,13 +338,20 @@ struct AddMealView: View {
                 }
                 Stepper(store.text("准备 \(servings) 份", "Prepare \(servings) servings"), value: $servings, in: 1...30)
             }
-            .navigationTitle(store.text("添加餐食", "Add Meal"))
+            .navigationTitle(item == nil ? store.text("添加餐食", "Add Meal") : store.text("编辑餐食", "Edit Meal"))
             .formScreenToolbar(canSave: !title.trimmingCharacters(in: .whitespaces).isEmpty) {
-                store.addMeal(title: title, date: date, slot: slot, participantIDs: Array(participantIDs), servings: servings)
+                if let item {
+                    store.updateMeal(
+                        item, title: title, date: date, slot: slot,
+                        participantIDs: Array(participantIDs), servings: servings
+                    )
+                } else {
+                    store.addMeal(title: title, date: date, slot: slot, participantIDs: Array(participantIDs), servings: servings)
+                }
                 dismiss()
             }
             .onAppear {
-                if participantIDs.isEmpty {
+                if item == nil && participantIDs.isEmpty {
                     participantIDs = Set(store.members.map(\.id))
                     servings = max(store.members.count, 1)
                 }
@@ -306,12 +363,23 @@ struct AddMealView: View {
 struct AddChoreView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @Environment(\.dismiss) private var dismiss
-    @State private var title = ""
-    @State private var hasDueDate = false
-    @State private var dueDate = Date()
-    @State private var mode: ChoreAssignmentMode = .unassigned
-    @State private var assigneeIDs = Set<UUID>()
-    @State private var recurrence: SimpleRecurrence = .none
+    let item: ChoreItem?
+    @State private var title: String
+    @State private var hasDueDate: Bool
+    @State private var dueDate: Date
+    @State private var mode: ChoreAssignmentMode
+    @State private var assigneeIDs: Set<UUID>
+    @State private var recurrence: SimpleRecurrence
+
+    init(item: ChoreItem? = nil) {
+        self.item = item
+        _title = State(initialValue: item?.title ?? "")
+        _hasDueDate = State(initialValue: item?.dueDate != nil)
+        _dueDate = State(initialValue: item?.dueDate ?? Date())
+        _mode = State(initialValue: item.flatMap { ChoreAssignmentMode(rawValue: $0.assignmentMode) } ?? .unassigned)
+        _assigneeIDs = State(initialValue: Set(item?.assigneeIDs ?? []))
+        _recurrence = State(initialValue: item.flatMap { SimpleRecurrence(rawValue: $0.recurrence) } ?? .none)
+    }
 
     var body: some View {
         NavigationStack {
@@ -342,13 +410,21 @@ struct AddChoreView: View {
                     }
                 }
             }
-            .navigationTitle(store.text("添加家务", "Add Chore"))
+            .navigationTitle(item == nil ? store.text("添加家务", "Add Chore") : store.text("编辑家务", "Edit Chore"))
             .formScreenToolbar(canSave: !title.trimmingCharacters(in: .whitespaces).isEmpty) {
                 let finalMode: ChoreAssignmentMode = assigneeIDs.isEmpty ? .unassigned : mode
-                store.addChore(
-                    title: title, dueDate: hasDueDate ? dueDate : nil,
-                    assignmentMode: finalMode, assigneeIDs: Array(assigneeIDs), recurrence: recurrence
-                )
+                let orderedAssigneeIDs = store.members.map(\.id).filter(assigneeIDs.contains)
+                if let item {
+                    store.updateChore(
+                        item, title: title, dueDate: hasDueDate ? dueDate : nil,
+                        assignmentMode: finalMode, assigneeIDs: orderedAssigneeIDs, recurrence: recurrence
+                    )
+                } else {
+                    store.addChore(
+                        title: title, dueDate: hasDueDate ? dueDate : nil,
+                        assignmentMode: finalMode, assigneeIDs: orderedAssigneeIDs, recurrence: recurrence
+                    )
+                }
                 dismiss()
             }
         }
@@ -375,15 +451,30 @@ struct AddChoreView: View {
 struct AddEventView: View {
     @EnvironmentObject private var store: LocalHouseholdDataStore
     @Environment(\.dismiss) private var dismiss
-    @State private var title = ""
-    @State private var startDate = Date()
-    @State private var isAllDay = true
-    @State private var hasEnd = false
-    @State private var endDate = Date().addingTimeInterval(3600)
-    @State private var recurrence: SimpleRecurrence = .none
-    @State private var hasReminder = false
-    @State private var reminderDate = Date()
-    @State private var reminderText = ""
+    let item: HouseholdEventItem?
+    @State private var title: String
+    @State private var startDate: Date
+    @State private var isAllDay: Bool
+    @State private var hasEnd: Bool
+    @State private var endDate: Date
+    @State private var recurrence: SimpleRecurrence
+    @State private var hasReminder: Bool
+    @State private var reminderDate: Date
+    @State private var reminderText: String
+
+    init(item: HouseholdEventItem? = nil) {
+        self.item = item
+        let start = item?.startDate ?? Date()
+        _title = State(initialValue: item?.title ?? "")
+        _startDate = State(initialValue: start)
+        _isAllDay = State(initialValue: item?.isAllDay ?? true)
+        _hasEnd = State(initialValue: item?.endDate != nil)
+        _endDate = State(initialValue: item?.endDate ?? start.addingTimeInterval(3600))
+        _recurrence = State(initialValue: item.flatMap { SimpleRecurrence(rawValue: $0.recurrence) } ?? .none)
+        _hasReminder = State(initialValue: item?.reminderDate != nil)
+        _reminderDate = State(initialValue: item?.reminderDate ?? start)
+        _reminderText = State(initialValue: item?.reminderText ?? "")
+    }
 
     var body: some View {
         NavigationStack {
@@ -415,14 +506,25 @@ struct AddEventView: View {
                     }
                 }
             }
-            .navigationTitle(store.text("添加家庭事件", "Add Household Event"))
+            .navigationTitle(item == nil
+                ? store.text("添加家庭事件", "Add Household Event")
+                : store.text("编辑家庭事件", "Edit Household Event"))
             .formScreenToolbar(canSave: !title.trimmingCharacters(in: .whitespaces).isEmpty) {
-                store.addEvent(
-                    title: title, startDate: startDate, endDate: hasEnd ? endDate : nil,
-                    isAllDay: isAllDay, recurrence: recurrence,
-                    reminderDate: hasReminder ? reminderDate : nil,
-                    reminderText: reminderText.isEmpty ? nil : reminderText
-                )
+                if let item {
+                    store.updateEvent(
+                        item, title: title, startDate: startDate, endDate: hasEnd ? endDate : nil,
+                        isAllDay: isAllDay, recurrence: recurrence,
+                        reminderDate: hasReminder ? reminderDate : nil,
+                        reminderText: reminderText.isEmpty ? nil : reminderText
+                    )
+                } else {
+                    store.addEvent(
+                        title: title, startDate: startDate, endDate: hasEnd ? endDate : nil,
+                        isAllDay: isAllDay, recurrence: recurrence,
+                        reminderDate: hasReminder ? reminderDate : nil,
+                        reminderText: reminderText.isEmpty ? nil : reminderText
+                    )
+                }
                 dismiss()
             }
         }
@@ -471,6 +573,26 @@ private struct FormScreenToolbar: ViewModifier {
 private extension View {
     func formScreenToolbar(canSave: Bool, save: @escaping () -> Void) -> some View {
         modifier(FormScreenToolbar(canSave: canSave, save: save))
+    }
+
+    func choreActions(
+        _ chore: ChoreItem,
+        store: LocalHouseholdDataStore,
+        editing: Binding<ChoreItem?>
+    ) -> some View {
+        swipeActions {
+            Button(role: .destructive) { store.deleteChore(chore) } label: {
+                Label(store.text("删除", "Delete"), systemImage: "trash")
+            }
+            Button { editing.wrappedValue = chore } label: {
+                Label(store.text("编辑", "Edit"), systemImage: "pencil")
+            }
+            .tint(.blue)
+        }
+        .contextMenu {
+            Button(store.text("编辑", "Edit")) { editing.wrappedValue = chore }
+            Button(store.text("删除", "Delete"), role: .destructive) { store.deleteChore(chore) }
+        }
     }
 }
 
