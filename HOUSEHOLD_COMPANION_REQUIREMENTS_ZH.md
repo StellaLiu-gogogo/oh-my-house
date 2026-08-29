@@ -1118,10 +1118,23 @@ Recipe 可以从相册添加一张可选照片；做法按照可增删的有序�
 
 Recipe ingredients 必须经过用户简单检查后才能加入 Shopping，不自动加入。
 
-删除一个已经安排的 Meal 时，同时从 Shopping List 移除由这顿 Meal 加入的食材。只移除仍然关联这顿
-Meal 的 Shopping Item；用户手动添加的项目、Maintenance / Supplies 项目以及其他 Meal 的食材不受影响。
-如果以后一个合并后的 Shopping Item 同时关联多个来源，则只移除被删除 Meal 的来源关系；仍有其他来源时
-保留该 Shopping Item。
+Meal、Recipe 与 Shopping 的修改和删除行为已经确认：
+
+1.  删除 Meal 时，删除由该 Meal 产生、尚未购买且没有被用户单独修改的 Shopping Items；不影响手动
+    项目、Maintenance / Supplies 项目或其他 Meal 的食材；
+2.  已购买的食材记录继续保留，只解除与被删除 Meal 的连接；
+3.  用户手动修改过的关联购物项不静默删除。删除 Meal 时询问保留还是一起删除；选择保留后，它成为普通
+    Grocery 项目，不再属于该 Meal；
+4.  Meal 修改 servings 后，如果已有购物食材，询问是否检查并更新数量；不覆盖用户手动修改的数量；
+5.  Meal 更换 Recipe 时，先让用户检查是否删除旧食材，再显示新食谱食材供用户重新确认；新食材不自动加入；
+6.  Meal 取消 Recipe 连接后继续作为普通文字 Meal 保留，并询问删除旧食材还是保留为普通购物项；默认删除；
+7.  修改 Recipe 只影响以后使用以及打开烹饪页面时显示的最新照片和步骤；已经安排的 Meal 名称、日期、
+    servings 和已有 Shopping Items 不自动重写；
+8.  删除 Recipe 时，已安排的 Meal 继续保留为普通文字 Meal，已有 Shopping Items 继续保留。删除前说明
+    受影响 Meal 将不能再打开该 Recipe 的烹饪内容。
+
+如果以后一个合并后的 Shopping Item 同时关联多个来源，则删除其中一个 Meal 只移除对应来源关系；仍有
+其他来源时保留 Shopping Item。
 
 第一阶段不根据“咖喱饭”“煮面”等简单自由文本自动猜测 ingredients。
 

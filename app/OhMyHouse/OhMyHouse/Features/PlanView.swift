@@ -74,6 +74,7 @@ struct MealPlanView: View {
     @State private var showsMemberSheet = false
     @State private var showsAdd = false
     @State private var editingMeal: MealPlanItem?
+    @State private var mealAwaitingDeletion: MealPlanItem?
     @State private var addMealDate = Date()
 
     private var weekDays: [Date] {
@@ -120,13 +121,15 @@ struct MealPlanView: View {
                             }
                             .buttonStyle(.plain)
                             .swipeActions {
-                                Button(role: .destructive) { store.deleteMeal(meal) } label: {
+                                Button(role: .destructive) { requestMealDeletion(meal) } label: {
                                     Label(store.text("删除", "Delete"), systemImage: "trash")
                                 }
                             }
                             .contextMenu {
                                 Button(store.text("编辑", "Edit")) { editingMeal = meal }
-                                Button(store.text("删除", "Delete"), role: .destructive) { store.deleteMeal(meal) }
+                                Button(store.text("删除", "Delete"), role: .destructive) {
+                                    requestMealDeletion(meal)
+                                }
                             }
                         }
                         Button {
@@ -153,6 +156,43 @@ struct MealPlanView: View {
         .appScreenTools(showsMemberSheet: $showsMemberSheet)
         .sheet(isPresented: $showsAdd) { AddMealView(defaultDate: addMealDate) }
         .sheet(item: $editingMeal) { AddMealView(defaultDate: $0.date, item: $0) }
+        .confirmationDialog(
+            store.text("购物清单中有手动修改过的食材", "Some shopping items were edited"),
+            isPresented: Binding(
+                get: { mealAwaitingDeletion != nil },
+                set: { if !$0 { mealAwaitingDeletion = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button(store.text("保留修改后的购物项", "Keep edited shopping items")) {
+                if let mealAwaitingDeletion {
+                    store.deleteMeal(mealAwaitingDeletion, keepEditedShoppingItems: true)
+                }
+                mealAwaitingDeletion = nil
+            }
+            Button(store.text("同时删除这些购物项", "Delete edited shopping items too"), role: .destructive) {
+                if let mealAwaitingDeletion {
+                    store.deleteMeal(mealAwaitingDeletion, keepEditedShoppingItems: false)
+                }
+                mealAwaitingDeletion = nil
+            }
+            Button(store.text("取消", "Cancel"), role: .cancel) {
+                mealAwaitingDeletion = nil
+            }
+        } message: {
+            Text(store.text(
+                "已购买记录会保留。未修改的关联食材会随餐食删除。",
+                "Purchased history will be kept. Unedited linked ingredients will be removed with the meal."
+            ))
+        }
+    }
+
+    private func requestMealDeletion(_ meal: MealPlanItem) {
+        if store.hasManuallyEditedShoppingItems(for: meal) {
+            mealAwaitingDeletion = meal
+        } else {
+            store.deleteMeal(meal)
+        }
     }
 }
 

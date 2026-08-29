@@ -142,6 +142,7 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         item.title = trimmed
         item.sourceKind = source.rawValue
         item.sourceID = sourceID
+        item.wasManuallyEdited = false
         item.isPurchased = false
         item.createdAt = Date()
         item.updatedAt = Date()
@@ -160,6 +161,10 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         guard !trimmed.isEmpty else { return }
         item.title = trimmed
         item.sourceKind = source.rawValue
+        item.wasManuallyEdited = true
+        if source != .meals {
+            item.sourceID = nil
+        }
         item.updatedAt = Date()
         saveAndReload()
     }
@@ -210,7 +215,16 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         updatePlanningItem(changed, title: trimmed, entityName: "MealEntity")
     }
 
-    func deleteMeal(_ item: MealPlanItem) {
+    func hasManuallyEditedShoppingItems(for meal: MealPlanItem) -> Bool {
+        shoppingItems.contains {
+            $0.sourceKind == ShoppingSource.meals.rawValue
+                && $0.sourceID == meal.id
+                && !$0.isPurchased
+                && $0.wasManuallyEdited
+        }
+    }
+
+    func deleteMeal(_ item: MealPlanItem, keepEditedShoppingItems: Bool = true) {
         let mealRequest = NSFetchRequest<NSManagedObject>(entityName: "MealEntity")
         mealRequest.predicate = NSPredicate(format: "id == %@", item.id as CVarArg)
 
@@ -228,7 +242,11 @@ final class LocalHouseholdDataStore: ObservableObject, HouseholdDataStore {
         savedMeal.setValue(now, forKey: "deletedAt")
         savedMeal.setValue(now, forKey: "updatedAt")
         for shoppingItem in linkedShoppingItems {
-            shoppingItem.deletedAt = now
+            if shoppingItem.isPurchased || (shoppingItem.wasManuallyEdited && keepEditedShoppingItems) {
+                shoppingItem.sourceID = nil
+            } else {
+                shoppingItem.deletedAt = now
+            }
             shoppingItem.updatedAt = now
         }
 

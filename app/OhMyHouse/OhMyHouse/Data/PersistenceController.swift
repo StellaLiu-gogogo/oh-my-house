@@ -25,6 +25,7 @@ class ShoppingItemEntity: NSManagedObject, Identifiable {
     @NSManaged var translatedTitle: String?
     @NSManaged var sourceKind: String
     @NSManaged var sourceID: UUID?
+    @NSManaged var wasManuallyEdited: Bool
     @NSManaged var isPurchased: Bool
     @NSManaged var purchasedAt: Date?
     @NSManaged var createdAt: Date
@@ -82,6 +83,7 @@ final class PersistenceController {
                 attribute("translatedTitle", .stringAttributeType, optional: true),
                 attribute("sourceKind", .stringAttributeType, defaultValue: "supplies"),
                 attribute("sourceID", .UUIDAttributeType, optional: true),
+                attribute("wasManuallyEdited", .booleanAttributeType, defaultValue: false),
                 attribute("isPurchased", .booleanAttributeType, defaultValue: false),
                 attribute("purchasedAt", .dateAttributeType, optional: true)
             ]
